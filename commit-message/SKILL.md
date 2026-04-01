@@ -1,5 +1,5 @@
 ---
-name: commit
+name: commit-message
 version: 1.0.0
 description: |
   Generate a conventional commit message for staged or unstaged changes.
