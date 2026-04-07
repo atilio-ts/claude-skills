@@ -96,9 +96,14 @@ Los skills personales en `~/Projects/Personal/claude-skills/` son:
 - `commit-message/`
 - `estimate/`
 - `user-story/`
+- `sync-configuration/`
+- `update-skills/`
 
-`user-story` es un symlink desde `~/.claude/skills/user-story` al repo —
-cualquier cambio en el skill ya está reflejado automáticamente.
+Los siguientes son symlinks desde `~/.claude/skills/` al repo —
+cualquier cambio en el skill ya está reflejado automáticamente:
+- `user-story`
+- `sync-configuration`
+- `update-skills`
 
 Para `commit-message` y `estimate`, comparar:
 - `~/.claude/skills/commit-message/SKILL.md` vs `~/Projects/Personal/claude-skills/commit-message/SKILL.md`
