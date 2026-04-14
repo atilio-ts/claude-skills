@@ -1,6 +1,6 @@
 ---
 name: sync-configuration
-version: 1.0.0
+version: 2.0.0
 description: |
   Sincroniza el repositorio de dev-setup y el repositorio personal de skills
   de Claude con el estado actual de la máquina. Detecta diferencias, aplica
@@ -22,6 +22,9 @@ la máquina:
 - **dev-setup**: `~/Projects/Personal/dev-setup/`
 - **claude-skills**: `~/Projects/Personal/claude-skills/`
 
+**Principio clave**: el estado de esta máquina es la fuente de verdad.
+Si hay diferencia entre el repo y el live, el repo es lo que hay que actualizar.
+
 ---
 
 ## Repositorios y paths relevantes
@@ -31,15 +34,51 @@ la máquina:
 | dev-setup | `~/Projects/Personal/dev-setup/` | `atilio-ts/dev-setup` |
 | claude-skills | `~/Projects/Personal/claude-skills/` | `atilio-ts/claude-skills` |
 
-Skills personales instalados en `~/.claude/skills/` como symlinks al repo
-`claude-skills`. Las skills de terceros (gstack, fullstack-dev-skills, etc.)
-NO se sincronizan — solo las del repo personal.
+---
+
+## Paso 1 — Comprobar completitud del repo (antes de comparar archivos)
+
+Antes de hacer diffs, verificar que no haya directorios o archivos en `~/.claude/`
+que no estén rastreados en el repo. Ejecutar:
+
+```bash
+ls ~/.claude/
+ls ~/Projects/Personal/dev-setup/claude/
+```
+
+Directorios esperados en el repo bajo `claude/`:
+- `agents/`, `hooks/`, `memory/`, `mcp-configs/`, `rules/`
+- `CLAUDE.md`, `settings.json`, `statusline-command.sh`
+
+Directorios de `~/.claude/` que NO se sincronizan (auto-generados o runtime):
+- `backups/`, `cache/`, `commands/`, `debug/`, `ecc/`, `file-history/`
+- `homunculus/`, `ide/`, `metrics/`, `paste-cache/`, `plans/`, `plugins/`
+- `projects/`, `scripts/`, `session-env/`, `sessions/`, `shell-snapshots/`
+- `skills/`, `statsig/`, `tasks/`, `telemetry/`, `todos/`
+- `history.jsonl`, `marketplace.json`, `mcp-needs-auth-cache.json`
+- `plugin.json`, `stats-cache.json`
+- `hooks/hooks.json`, `hooks/README.md` (generados por ECC al instalar)
+
+Si aparece un directorio en `~/.claude/` que no está en ninguna de las dos listas,
+investigar si es custom y debe agregarse al repo.
+
+Para **agentes** y **reglas**, comparar directorios completos:
+
+```bash
+diff -rq ~/.claude/agents/ ~/Projects/Personal/dev-setup/claude/agents/
+diff -rq ~/.claude/rules/ ~/Projects/Personal/dev-setup/claude/rules/
+```
+
+Si hay diferencias, copiar el directorio completo desde live al repo:
+
+```bash
+cp -r ~/.claude/agents ~/Projects/Personal/dev-setup/claude/agents
+cp -r ~/.claude/rules ~/Projects/Personal/dev-setup/claude/rules
+```
 
 ---
 
-## Paso 1 — Sincronizar dev-setup
-
-### 1.1 Comparar archivos
+## Paso 2 — Comparar archivos individuales
 
 Ejecuta `diff` entre cada archivo del repo y su contraparte live:
 
@@ -60,13 +99,19 @@ Ejecuta `diff` entre cada archivo del repo y su contraparte live:
 | `nvim/init.lua` | `~/.config/nvim/init.lua` |
 | `nvim/lua/config/*.lua` | `~/.config/nvim/lua/config/*.lua` |
 
-### 1.2 Reglas de sincronización para zshrc (CRÍTICAS)
+### Diffs que se pueden ignorar
 
-El `zshrc` del repo usa **mise** como gestor de versiones (Node, Java, etc.).
-El live puede tener variantes específicas de la máquina que NO deben copiarse
-al repo:
+- `gitconfig` — el campo `git-commit-alias` es un SHA auto-gestionado, ignorar
+- `settings.json` — diferencias de orden de keys JSON sin cambio de contenido, ignorar
+- `spicetify/` — `.DS_Store`, `CustomApps`, `Extensions`, `Themes` son datos runtime
+- `launchagents/` — plists de Google Updater son auto-instalados, no gestionados
 
-**Ignorar siempre** (no copiar al repo, no son parte del baseline):
+### Reglas para zshrc (CRÍTICAS)
+
+El repo usa **mise** como gestor de versiones. El live puede tener variantes
+específicas de la máquina que NO deben copiarse al repo:
+
+**Ignorar siempre** (no son parte del baseline):
 - Bloque `jenv` (`export PATH="$HOME/.jenv/bin:$PATH"` + `eval "$(jenv init -)"`)
 - Bloque `fnm` (`eval "$(fnm env --use-on-cd --shell zsh)"`)
 - Cualquier otro gestor de versiones alternativo a `mise`
@@ -75,67 +120,75 @@ al repo:
 - `eval "$($HOME/.local/bin/mise activate zsh)"` como gestor de versiones
 - `$HOME/.bun/_bun` (ruta con variable, no absoluta)
 
-Para el resto de diferencias (nuevas líneas, aliases, tools, etc.): aplicar
-los cambios del live al repo.
+### Reglas generales de sincronización
 
-### 1.3 Aplicar cambios
-
-Para cada archivo con diferencias:
-- Si son diferencias simples (orden de keys, trailing newlines): `cp` del live
-- Si es `zshrc`: aplicar manualmente solo los cambios que no sean jenv/fnm/mise
 - Nunca copiar credenciales, tokens o paths absolutos con username hardcodeado
   cuando exista una alternativa con `$HOME`
+- Si el diff es solo orden de keys o trailing newline, no actualizar
 
 ---
 
-## Paso 2 — Sincronizar claude-skills
+## Paso 3 — Sincronizar claude-skills
 
-### 2.1 Skills en el repo personal
+### 3.1 Skills en el repo personal
 
-Los skills personales en `~/Projects/Personal/claude-skills/` son:
-- `commit-message/`
-- `estimate/`
-- `user-story/`
-- `sync-configuration/`
-- `update-skills/`
+| Skill | Instalado como |
+|---|---|
+| `commit-message/` | directorio en `~/.claude/skills/` |
+| `estimate/` | directorio en `~/.claude/skills/` |
+| `user-story/` | symlink → repo |
+| `sync-configuration/` | symlink → repo |
+| `update-skills/` | symlink → repo |
 
-Los siguientes son symlinks desde `~/.claude/skills/` al repo —
-cualquier cambio en el skill ya está reflejado automáticamente:
-- `user-story`
-- `sync-configuration`
-- `update-skills`
+Para `commit-message` y `estimate` (no son symlinks), comparar y copiar si difieren:
 
-Para `commit-message` y `estimate`, comparar:
-- `~/.claude/skills/commit-message/SKILL.md` vs `~/Projects/Personal/claude-skills/commit-message/SKILL.md`
-- `~/.claude/skills/estimate/SKILL.md` vs `~/Projects/Personal/claude-skills/estimate/SKILL.md`
+```bash
+diff ~/.claude/skills/commit-message/SKILL.md ~/Projects/Personal/claude-skills/commit-message/SKILL.md
+diff ~/.claude/skills/estimate/SKILL.md ~/Projects/Personal/claude-skills/estimate/SKILL.md
+```
 
-Si hay diferencias, copiar desde `~/.claude/skills/` al repo.
+### 3.2 Skills nuevos
 
-### 2.2 Skills nuevos
+Listar todos los directorios reales (no symlinks) en `~/.claude/skills/`:
 
-Si hay skills en `~/.claude/skills/` que el usuario haya creado y que no sean
-de terceros (gstack, fullstack-dev-skills, vercel, etc.), preguntar al usuario
-si quiere agregarlos al repo antes de proceder.
+```bash
+for f in ~/.claude/skills/*/; do
+  [ -L "${f%/}" ] || echo "DIR  $(basename $f)"
+done
+```
+
+Comparar contra lo que está en el repo. Si hay alguno que no sea de terceros
+(gstack, ECC plugin skills, vercel, caveman), preguntar al usuario si quiere
+agregarlo al repo.
+
+Skills de terceros conocidos que NO se sincronizan:
+- ECC plugin: backend-patterns, coding-standards, continuous-learning, continuous-learning-v2,
+  frontend-patterns, frontend-slides, iterative-retrieval, java-coding-standards,
+  springboot-patterns, springboot-tdd, springboot-verification, strategic-compact,
+  tdd-workflow, verification-loop
+- gstack (tiene node_modules, se instala via `claude plugins install gstack`)
+- learned (directorio vacío, runtime de ECC)
+- Symlinks a vercel-labs, caveman, find-skills (gestionados via `npx skills add`)
 
 ---
 
-## Paso 3 — Commit y push
+## Paso 4 — Commit y push
 
-Una vez aplicados los cambios en ambos repos, para cada repo con cambios:
+Para cada repo con cambios:
 
-1. Mostrar el `git diff --stat` antes de commitear
-2. Hacer commit con mensaje descriptivo siguiendo Conventional Commits:
-   - Tipo `chore(sync):` para sincronizaciones de rutina
-   - Listar en el cuerpo qué archivos cambiaron y por qué
+1. Mostrar `git diff --stat` antes de commitear
+2. Commit con Conventional Commits:
+   - `chore(sync):` para sincronizaciones de rutina
+   - Listar en el cuerpo qué cambió y por qué
 3. Push a `main`
 
 Si un repo no tiene cambios, informarlo y no crear commit vacío.
 
 ---
 
-## Paso 4 — Verificación final
+## Paso 5 — Verificación final
 
-Después del push, confirmar:
+Confirmar:
 - Ambos repos están en sync con `origin/main`
-- No quedaron diferencias inesperadas entre live y repo (re-ejecutar diffs clave)
-- Reportar un resumen de qué se actualizó en cada repo
+- Re-ejecutar los diffs clave para verificar que no quedaron diferencias
+- Reportar resumen de qué se actualizó en cada repo
