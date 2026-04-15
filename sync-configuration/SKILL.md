@@ -50,6 +50,16 @@ Directorios esperados en el repo bajo `claude/`:
 - `agents/`, `hooks/`, `memory/`, `mcp-configs/`, `rules/`
 - `CLAUDE.md`, `settings.json`, `statusline-command.sh`
 
+Para **memory**, comparar el contenido del directorio:
+
+```bash
+diff -rq ~/.claude/memory/ ~/Projects/Personal/dev-setup/claude/memory/
+```
+
+Los archivos de memoria que se rastrean son `MEMORY.md` y los archivos de feedback/user
+globales (`feedback_cachebro.md`, `user_profile.md`). Si hay nuevos archivos de feedback
+relevantes para cualquier máquina (no específicos a un proyecto), agregarlos al repo.
+
 Directorios de `~/.claude/` que NO se sincronizan (auto-generados o runtime):
 - `backups/`, `cache/`, `commands/`, `debug/`, `ecc/`, `file-history/`
 - `homunculus/`, `ide/`, `metrics/`, `paste-cache/`, `plans/`, `plugins/`
@@ -98,6 +108,7 @@ Ejecuta `diff` entre cada archivo del repo y su contraparte live:
 | `atuin/config.toml` | `~/.config/atuin/config.toml` |
 | `nvim/init.lua` | `~/.config/nvim/init.lua` |
 | `nvim/lua/config/*.lua` | `~/.config/nvim/lua/config/*.lua` |
+| `nvim/lua/plugins/example.lua` | `~/.config/nvim/lua/plugins/example.lua` |
 
 ### Diffs que se pueden ignorar
 
@@ -125,6 +136,55 @@ específicas de la máquina que NO deben copiarse al repo:
 - Nunca copiar credenciales, tokens o paths absolutos con username hardcodeado
   cuando exista una alternativa con `$HOME`
 - Si el diff es solo orden de keys o trailing newline, no actualizar
+
+---
+
+## Paso 2.5 — Verificar DEV_SETUP.md
+
+`DEV_SETUP.md` documenta el entorno completo para reproducirlo en una máquina nueva.
+Hay que mantenerlo al día con el estado real de la máquina. Verificar:
+
+### Fecha
+
+Actualizar el campo `Last updated:` al día de hoy si se hicieron cambios.
+
+### Formulas de Homebrew
+
+Comparar la lista documentada en DEV_SETUP.md con lo que está instalado:
+
+```bash
+brew list --formula | sort
+```
+
+Diferencias frecuentes a detectar:
+- **Herramienta removida**: eliminarla de la lista de formulas y de la tabla de tools
+- **Herramienta nueva**: agregarla en orden alfabético en la lista de formulas y en la tabla si es una CLI tool
+- **Cambio de versión de Python** (`python@3.13` → `python@3.14`): actualizar la lista Y la línea de PATH en el ejemplo de `.zshrc`
+
+### zshrc
+
+Comparar el bloque de `.zshrc` documentado en DEV_SETUP.md con el live `~/.zshrc`.
+Diferencias frecuentes:
+- Líneas de `eval "$(tool init ...)"` para herramientas que ya no están instaladas
+- PATH de Python desactualizado
+
+### Herramientas instaladas via pipx
+
+```bash
+pipx list
+```
+
+Las herramientas de pipx se documentan en la subsección **"Python tools — pipx"**
+dentro de la sección "Terminal Tools & Aliases" de DEV_SETUP.md. Si hay nuevas,
+agregarlas a la tabla con nombre, versión y comando de instalación.
+
+> Nota: el package de pip puede diferir del nombre del comando (ej: `pipx install graphifyy`
+> instala el comando `graphify`).
+
+### Known gaps del Brewfile
+
+La nota de "Known gaps" al inicio de la sección Homebrew debe reflejar solo los packages
+que realmente están instalados pero que `brew bundle dump` omite. Actualizar si cambia.
 
 ---
 
