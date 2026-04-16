@@ -2,11 +2,11 @@
 name: custom-init
 version: 1.1.0
 description: |
-  Bootstraps a new project with the full productivity setup: verifies cachebro
-  and graphify are configured as MCPs, writes a .graphifyignore tuned to the
-  project type, builds the knowledge graph for the repo, writes the project
-  .mcp.json, generates a .vscode/CLAUDE.md (with per-module files for
-  monorepos), and adds the tool output folders to .gitignore.
+  Bootstraps a new project with the full productivity setup: verifies cachebro,
+  graphify, and houtini-lm are configured as global MCPs and online, writes a
+  .graphifyignore tuned to the project type, builds the knowledge graph for the
+  repo, generates a .vscode/CLAUDE.md (with per-module files for monorepos), and
+  adds the tool output folders to .gitignore.
 trigger: /custom-init
 allowed-tools:
   - Read
@@ -188,7 +188,43 @@ Restart Claude Code after editing.
 
 **If present**, print: `✓ graphify MCP is configured globally`.
 
-### 2c — Check `enableAllProjectMcpServers` in `~/.claude/settings.json`
+### 2c — Check houtini-lm global MCP
+
+houtini-lm is configured globally (not per-project) and connects Claude Code to the
+local LLM running in LM Studio on `localhost:1234`. Check that it is registered:
+
+```bash
+claude mcp list 2>/dev/null | grep -i houtini
+```
+
+**If missing**, print this message and continue — do NOT modify files automatically:
+
+```
+⚠  houtini-lm global MCP not found.
+
+Register it globally with:
+
+  claude mcp add --scope user houtini-lm -- npx -y @houtini/lm
+
+Then restart Claude Code.
+```
+
+**If present**, call `mcp__houtini-lm__discover` to verify the local LLM server is
+reachable:
+
+- If the tool returns `Status: ONLINE` → print: `✓ houtini-lm connected — <model name>`
+- If it returns `Status: OFFLINE` → print:
+
+```
+⚠  houtini-lm is registered but LM Studio is not running.
+
+Start LM Studio and load a model, then re-run /custom-init or verify manually
+with: claude mcp list
+```
+
+Do NOT fail the setup — continue with the remaining steps.
+
+### 2d — Check `enableAllProjectMcpServers` in `~/.claude/settings.json`
 
 This setting auto-enables any `.mcp.json` found in a project root, without needing a
 per-project `.claude/settings.local.json`. Without it, graphify (and any project MCP)
@@ -434,50 +470,15 @@ project's directory when Claude Code starts in it. If the graph file doesn't exi
 yet (e.g. before running graphify for the first time), the server exits with a warning
 and shows `✘ failed` in the MCP list — this is expected and harmless.
 
-### 4a — Write `.mcp.json` with houtini-lm
+### 4a — houtini-lm is global — no `.mcp.json` needed for it
 
-Always create `.mcp.json` in the project root with houtini-lm. If it already exists,
-verify houtini-lm is present and add it if missing — do not overwrite other entries.
+houtini-lm is registered globally and connects to LM Studio on `localhost:1234`.
+**Do not write houtini-lm into `.mcp.json`.** Its availability was already verified
+in Step 2c.
 
-```bash
-if [ ! -f ".mcp.json" ]; then
-  cat > .mcp.json << 'EOF'
-{
-  "mcpServers": {
-    "houtini-lm": {
-      "command": "npx",
-      "args": ["-y", "@houtini/lm"],
-      "env": {
-        "LM_STUDIO_URL": "http://localhost:11434",
-        "LM_STUDIO_MODEL": "qwen2.5-coder:7b"
-      }
-    }
-  }
-}
-EOF
-  echo "Wrote .mcp.json"
-else
-  python3 -c "
-import json
-with open('.mcp.json') as f:
-    data = json.load(f)
-if 'houtini-lm' not in data.get('mcpServers', {}):
-    data.setdefault('mcpServers', {})['houtini-lm'] = {
-        'command': 'npx',
-        'args': ['-y', '@houtini/lm'],
-        'env': {
-            'LM_STUDIO_URL': 'http://localhost:11434',
-            'LM_STUDIO_MODEL': 'qwen2.5-coder:7b'
-        }
-    }
-    with open('.mcp.json', 'w') as f:
-        json.dump(data, f, indent=2)
-    print('houtini-lm added to existing .mcp.json')
-else:
-    print('.mcp.json already has houtini-lm')
-"
-fi
-```
+Only create `.mcp.json` if this specific project requires MCPs beyond the three global
+ones (cachebro, graphify, houtini-lm). If no project-specific MCPs are needed, skip
+this file entirely.
 
 ### 4b — No per-project `.claude/` needed
 
@@ -631,8 +632,8 @@ platform, and what other modules it interacts with.]
 
 ## Step 7 — Update `.gitignore`
 
-Read the current `.gitignore` (or create it if missing). Check whether `.cachebro`,
-`graphify-out`, and `.mcp.json` are already present. Append only the missing ones:
+Read the current `.gitignore` (or create it if missing). Check whether `.cachebro`
+and `graphify-out` are already present. Append only the missing ones:
 
 ```bash
 GITIGNORE=".gitignore"
@@ -640,7 +641,6 @@ MISSING=""
 
 grep -qxF ".cachebro" "$GITIGNORE" 2>/dev/null    || MISSING="$MISSING\n.cachebro"
 grep -qxF "graphify-out" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\ngraphify-out"
-grep -qxF ".mcp.json" "$GITIGNORE" 2>/dev/null    || MISSING="$MISSING\n.mcp.json"
 
 if [ -n "$MISSING" ]; then
     printf "$MISSING\n" >> "$GITIGNORE"
@@ -649,6 +649,9 @@ else
     echo ".gitignore already up to date"
 fi
 ```
+
+> Only add `.mcp.json` to `.gitignore` if a project-specific `.mcp.json` was created
+> in Step 4a. If no project-specific MCPs were needed, skip this entry.
 
 ---
 
@@ -659,18 +662,20 @@ After all steps complete, print a concise summary:
 ```
 ✓ cachebro MCP — [configured globally / MISSING — see instructions above]
 ✓ graphify global MCP — [configured globally / MISSING — see instructions above]
+✓ houtini-lm global MCP — [connected (<model>) / registered but LM Studio offline / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
 ✓ .graphifyignore written — [N patterns, Java/Node/Python/Go/Rust block]
 ✓ graphify built — graphify-out/graph.json ([N nodes, M edges] from graph_stats)
-✓ .mcp.json written (project-scoped MCPs only) / skipped (none needed)
+✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
 ✓ .vscode/CLAUDE.md written
 ✓ .vscode/<module>-CLAUDE.md stubs written: [list]
-✓ .gitignore updated (.cachebro, graphify-out, .mcp.json)
+✓ .gitignore updated (.cachebro, graphify-out)
 
 Next steps:
   1. Restart Claude Code so the graphify MCP loads from the global wrapper.
-  2. Fill in any [TODO] placeholders in .vscode/CLAUDE.md.
-  3. Run /graphify <path> --update after significant code changes.
+  2. If houtini-lm was offline, start LM Studio and load a model before the session.
+  3. Fill in any [TODO] placeholders in .vscode/CLAUDE.md.
+  4. Run /graphify <path> --update after significant code changes.
 ```
 
 ---
@@ -687,6 +692,9 @@ Next steps:
 - **graphify is global** — never write graphify into `.mcp.json`. The global wrapper
   at `~/.claude/scripts/graphify-start.sh` handles all projects via `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
-  MCPs beyond the global ones (cachebro, graphify). Add to `.gitignore`.
+  MCPs beyond the global ones (cachebro, graphify, houtini-lm). Add to `.gitignore`.
+- **houtini-lm is global** — never write houtini-lm into `.mcp.json`. It is registered
+  globally and connects to LM Studio on `localhost:1234`. Verify it is online via
+  `mcp__houtini-lm__discover` during setup.
 - For the graphify build step, delegate to the `/graphify` skill — do not re-implement
   the extraction pipeline here.
