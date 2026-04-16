@@ -434,14 +434,14 @@ project's directory when Claude Code starts in it. If the graph file doesn't exi
 yet (e.g. before running graphify for the first time), the server exits with a warning
 and shows `✘ failed` in the MCP list — this is expected and harmless.
 
-### 4a — `.mcp.json` for project-scoped MCPs only
+### 4a — Write `.mcp.json` with houtini-lm
 
-Only create a `.mcp.json` in the project root if the project needs project-scoped MCPs
-(e.g. `houtini-lm`). If there are none, skip this file entirely.
+Always create `.mcp.json` in the project root with houtini-lm. If it already exists,
+verify houtini-lm is present and add it if missing — do not overwrite other entries.
 
-Example for a project that uses houtini-lm:
-
-```json
+```bash
+if [ ! -f ".mcp.json" ]; then
+  cat > .mcp.json << 'EOF'
 {
   "mcpServers": {
     "houtini-lm": {
@@ -454,6 +454,29 @@ Example for a project that uses houtini-lm:
     }
   }
 }
+EOF
+  echo "Wrote .mcp.json"
+else
+  python3 -c "
+import json
+with open('.mcp.json') as f:
+    data = json.load(f)
+if 'houtini-lm' not in data.get('mcpServers', {}):
+    data.setdefault('mcpServers', {})['houtini-lm'] = {
+        'command': 'npx',
+        'args': ['-y', '@houtini/lm'],
+        'env': {
+            'LM_STUDIO_URL': 'http://localhost:11434',
+            'LM_STUDIO_MODEL': 'qwen2.5-coder:7b'
+        }
+    }
+    with open('.mcp.json', 'w') as f:
+        json.dump(data, f, indent=2)
+    print('houtini-lm added to existing .mcp.json')
+else:
+    print('.mcp.json already has houtini-lm')
+"
+fi
 ```
 
 ### 4b — No per-project `.claude/` needed
@@ -620,7 +643,7 @@ grep -qxF "graphify-out" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\ngraphify
 grep -qxF ".mcp.json" "$GITIGNORE" 2>/dev/null    || MISSING="$MISSING\n.mcp.json"
 
 if [ -n "$MISSING" ]; then
-    printf "\n# Claude productivity tools\n$MISSING\n" >> "$GITIGNORE"
+    printf "$MISSING\n" >> "$GITIGNORE"
     echo "Updated .gitignore"
 else
     echo ".gitignore already up to date"
