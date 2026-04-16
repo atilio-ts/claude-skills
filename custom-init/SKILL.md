@@ -114,20 +114,80 @@ except Exception as e:
 ```
 ⚠  cachebro MCP not found in ~/.claude.json.
 
-Add it manually by opening ~/.claude.json and inserting under "mcpServers":
+Install globally and add manually:
+
+  npm install -g cachebro
+  echo "$(npm prefix -g)/bin/cachebro"   # copy this path
+
+Then open ~/.claude.json and insert under "mcpServers":
 
   "cachebro": {
-    "command": "npx",
-    "args": ["cachebro", "serve"]
+    "command": "<path from above>",
+    "args": ["serve"]
   }
 
-Or run:  npx cachebro --version   to confirm it is installed first.
-Then restart Claude Code for the MCP to load.
+Do NOT use npx cachebro serve — it is unreliable when the npx cache expires.
+Restart Claude Code after editing.
 ```
 
 **If cachebro is present**, print: `✓ cachebro MCP is configured globally`.
 
-### 2b — Check `enableAllProjectMcpServers` in `~/.claude/settings.json`
+### 2b — Check graphify global MCP in `~/.claude.json`
+
+graphify is configured globally (not per-project). Check that the wrapper is present:
+
+```bash
+python3 -c "
+import json, os
+p = os.path.expanduser('~/.claude.json')
+try:
+    d = json.load(open(p))
+    mcp = d.get('mcpServers', {})
+    if 'graphify' in mcp:
+        print('OK')
+    else:
+        print('MISSING')
+except Exception as e:
+    print(f'ERROR: {e}')
+"
+```
+
+Also verify the wrapper script exists:
+
+```bash
+[ -f "$HOME/.claude/scripts/graphify-start.sh" ] && echo "OK" || echo "MISSING"
+```
+
+**If graphify is missing**, print this message and continue — do NOT modify files automatically:
+
+```
+⚠  graphify global MCP not found.
+
+1. Create ~/.claude/scripts/graphify-start.sh:
+
+   #!/bin/bash
+   GRAPH_FILE="${PWD}/graphify-out/graph.json"
+   if [ ! -f "$GRAPH_FILE" ]; then
+     echo "graphify: no graph found at $GRAPH_FILE" >&2
+     exit 1
+   fi
+   exec /Users/<username>/.local/pipx/venvs/graphifyy/bin/python -m graphify.serve "$GRAPH_FILE"
+
+   chmod +x ~/.claude/scripts/graphify-start.sh
+
+2. Add to ~/.claude.json under "mcpServers":
+
+   "graphify": {
+     "command": "bash",
+     "args": ["/Users/<username>/.claude/scripts/graphify-start.sh"]
+   }
+
+Restart Claude Code after editing.
+```
+
+**If present**, print: `✓ graphify MCP is configured globally`.
+
+### 2c — Check `enableAllProjectMcpServers` in `~/.claude/settings.json`
 
 This setting auto-enables any `.mcp.json` found in a project root, without needing a
 per-project `.claude/settings.local.json`. Without it, graphify (and any project MCP)
@@ -157,7 +217,6 @@ Add it manually by opening ~/.claude/settings.json and inserting at the top leve
 
   "enableAllProjectMcpServers": true
 
-Without this, the graphify MCP in .mcp.json won't load automatically.
 Then restart Claude Code.
 ```
 
@@ -200,51 +259,47 @@ with the modules listed as source paths (whichever graphify supports).
 
 ---
 
-## Step 4 — Configure graphify as project MCP
+## Step 4 — Graphify MCP is global — no `.mcp.json` needed for it
 
-### 4a — Write `.mcp.json`
+graphify is configured globally via `~/.claude.json` using a wrapper script
+(`~/.claude/scripts/graphify-start.sh`) that resolves the graph path dynamically
+from `$PWD` at startup. **Do not write graphify into `.mcp.json`.**
 
-Detect the graphify Python interpreter from `graphify-out/.graphify_python`:
+The global wrapper will automatically serve `graphify-out/graph.json` from this
+project's directory when Claude Code starts in it. If the graph file doesn't exist
+yet (e.g. before running graphify for the first time), the server exits with a warning
+and shows `✘ failed` in the MCP list — this is expected and harmless.
 
-```bash
-cat graphify-out/.graphify_python 2>/dev/null || echo "python3"
-```
+### 4a — `.mcp.json` for project-scoped MCPs only
 
-Write `.mcp.json` in the project root with the absolute path to `graphify-out/graph.json`:
+Only create a `.mcp.json` in the project root if the project needs project-scoped MCPs
+(e.g. `houtini-lm`). If there are none, skip this file entirely.
 
-```bash
-PYTHON_BIN=$(cat graphify-out/.graphify_python 2>/dev/null || echo "python3")
-PROJECT_ROOT=$(pwd)
-GRAPH_PATH="$PROJECT_ROOT/graphify-out/graph.json"
+Example for a project that uses houtini-lm:
 
-cat > .mcp.json <<EOF
+```json
 {
   "mcpServers": {
-    "graphify": {
-      "type": "stdio",
-      "command": "$PYTHON_BIN",
-      "args": [
-        "-m",
-        "graphify.serve",
-        "$GRAPH_PATH"
-      ],
-      "env": {}
+    "houtini-lm": {
+      "command": "npx",
+      "args": ["-y", "@houtini/lm"],
+      "env": {
+        "LM_STUDIO_URL": "http://localhost:11434",
+        "LM_STUDIO_MODEL": "qwen2.5-coder:7b"
+      }
     }
   }
 }
-EOF
-echo "Wrote .mcp.json"
 ```
 
 ### 4b — No per-project `.claude/` needed
 
 Since `enableAllProjectMcpServers: true` lives in the global `~/.claude/settings.json`,
-the `.mcp.json` written in step 4a is enough — Claude Code will auto-enable graphify on
-next restart. Do NOT create `.claude/settings.local.json` or any `.claude/` folder in
-the project.
+any `.mcp.json` written in step 4a is picked up automatically. Do NOT create
+`.claude/settings.local.json` or any `.claude/` folder in the project.
 
 If for any reason `enableAllProjectMcpServers` is missing from the global settings (as
-reported in step 2b), remind the user to add it globally rather than creating a local
+reported in step 2c), remind the user to add it globally rather than creating a local
 workaround.
 
 ---
@@ -416,15 +471,16 @@ After all steps complete, print a concise summary:
 
 ```
 ✓ cachebro MCP — [configured globally / MISSING — see instructions above]
+✓ graphify global MCP — [configured globally / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
 ✓ graphify built — graphify-out/graph.json ([N nodes, M edges] from graph_stats)
-✓ .mcp.json written
+✓ .mcp.json written (project-scoped MCPs only) / skipped (none needed)
 ✓ .vscode/CLAUDE.md written
 ✓ .vscode/<module>-CLAUDE.md stubs written: [list]
 ✓ .gitignore updated (.cachebro, graphify-out, .mcp.json)
 
 Next steps:
-  1. Restart Claude Code so the graphify MCP loads.
+  1. Restart Claude Code so the graphify MCP loads from the global wrapper.
   2. Fill in any [TODO] placeholders in .vscode/CLAUDE.md.
   3. Run /graphify <path> --update after significant code changes.
 ```
@@ -440,9 +496,9 @@ Next steps:
 - **Never overwrite an existing `.vscode/CLAUDE.md`** without asking the user first.
   If it already exists, diff the proposed changes and ask for confirmation.
 - **Never add `.vscode/` to git** — it is always in `.gitignore`.
-- **Absolute paths in `.mcp.json`** — always use the absolute path for `graphify.serve`,
-  never a relative one, because Claude Code can be invoked from different working directories.
-- **`.mcp.json` stays in the project root** — it is project-specific (contains the path
-  to this repo's graph) and must be in `.gitignore` so local machine paths aren't committed.
+- **graphify is global** — never write graphify into `.mcp.json`. The global wrapper
+  at `~/.claude/scripts/graphify-start.sh` handles all projects via `$PWD` resolution.
+- **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
+  MCPs beyond the global ones (cachebro, graphify). Add to `.gitignore`.
 - For the graphify build step, delegate to the `/graphify` skill — do not re-implement
   the extraction pipeline here.

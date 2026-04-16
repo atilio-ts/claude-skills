@@ -63,8 +63,10 @@ relevantes para cualquier máquina (no específicos a un proyecto), agregarlos a
 Directorios de `~/.claude/` que NO se sincronizan (auto-generados o runtime):
 - `backups/`, `cache/`, `commands/`, `debug/`, `ecc/`, `file-history/`
 - `homunculus/`, `ide/`, `metrics/`, `paste-cache/`, `plans/`, `plugins/`
-- `projects/`, `scripts/`, `session-env/`, `sessions/`, `shell-snapshots/`
+- `projects/`, `session-env/`, `sessions/`, `shell-snapshots/`
 - `skills/`, `statsig/`, `tasks/`, `telemetry/`, `todos/`
+- `scripts/` — generado por `setup.sh` con paths absolutos específicos de la máquina
+  (ej: `graphify-start.sh` usa el path de pipx del usuario activo)
 - `history.jsonl`, `marketplace.json`, `mcp-needs-auth-cache.json`
 - `plugin.json`, `stats-cache.json`
 - `hooks/hooks.json`, `hooks/README.md` (generados por ECC al instalar)
