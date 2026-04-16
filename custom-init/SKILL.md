@@ -1,11 +1,12 @@
 ---
 name: custom-init
-version: 1.0.0
+version: 1.1.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies cachebro
-  and graphify are configured as MCPs, builds the knowledge graph for the repo,
-  writes the project .mcp.json, generates a .vscode/CLAUDE.md (with per-module
-  files for monorepos), and adds the tool output folders to .gitignore.
+  and graphify are configured as MCPs, writes a .graphifyignore tuned to the
+  project type, builds the knowledge graph for the repo, writes the project
+  .mcp.json, generates a .vscode/CLAUDE.md (with per-module files for
+  monorepos), and adds the tool output folders to .gitignore.
 trigger: /custom-init
 allowed-tools:
   - Read
@@ -224,7 +225,170 @@ Then restart Claude Code.
 
 ---
 
-## Step 3 — Build the knowledge graph (skip if --skip-graph)
+## Step 3 — Write `.graphifyignore`
+
+graphify has native support for `.graphifyignore` (gitignore-style patterns). It already
+excludes common noise by default (`node_modules`, `__pycache__`, `.git`, `build`, `target`,
+`dist`, `out`, `venv`, lock files). The `.graphifyignore` file adds project-type-specific
+patterns that graphify does NOT exclude by default, reducing extraction cost.
+
+**This file should be committed** — it is project config, not machine-specific output.
+
+### 3a — Check if `.graphifyignore` already exists
+
+```bash
+[ -f ".graphifyignore" ] && echo "EXISTS" || echo "MISSING"
+```
+
+If it already exists, skip this step.
+
+### 3b — Detect project type and write patterns
+
+Based on the build system detected in Step 1, write `.graphifyignore` with the
+appropriate patterns. Always include the universal block, then append the
+language-specific block.
+
+```bash
+cat > .graphifyignore << 'EOF'
+# ── Universal noise ──────────────────────────────────────────────────────────
+# graphify already skips: node_modules, __pycache__, .git, build, target,
+# dist, out, venv, lock files. These extend that baseline.
+
+# Tool output folders (machine-specific, no semantic value)
+graphify-out/
+.cachebro/
+temporary/
+
+# IDE and OS noise
+.idea/
+.DS_Store
+*.iml
+EOF
+```
+
+Then append the block that matches the detected build system:
+
+**Java / Gradle or Maven:**
+```bash
+cat >> .graphifyignore << 'EOF'
+
+# ── Java ─────────────────────────────────────────────────────────────────────
+# Compiled bytecode
+*.class
+*.jar
+*.war
+*.ear
+
+# Gradle caches and wrapper binaries
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# Vendored / local Maven repos (binary JARs, no source value)
+local-maven/
+
+# Generated source (OpenAPI codegen output, etc.)
+# Note: build/ is already excluded by graphify default
+build/gm/
+
+# Test fixtures and generated test data (high volume, low semantic value)
+src/test/resources/
+**/test-data/
+**/fixtures/
+**/__snapshots__/
+EOF
+```
+
+**Node.js / TypeScript:**
+```bash
+cat >> .graphifyignore << 'EOF'
+
+# ── Node.js / TypeScript ─────────────────────────────────────────────────────
+# Framework build output
+.next/
+.nuxt/
+.svelte-kit/
+
+# Test coverage reports and snapshots
+coverage/
+.nyc_output/
+**/__snapshots__/
+**/*.snap
+
+# Type declaration caches
+*.tsbuildinfo
+
+# Test fixtures (data files, not logic)
+**/fixtures/
+**/test-data/
+**/mocks/data/
+EOF
+```
+
+**Python:**
+```bash
+cat >> .graphifyignore << 'EOF'
+
+# ── Python ───────────────────────────────────────────────────────────────────
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+htmlcov/
+.coverage
+
+# Test fixtures
+**/fixtures/
+**/test_data/
+**/__snapshots__/
+EOF
+```
+
+**Go:**
+```bash
+cat >> .graphifyignore << 'EOF'
+
+# ── Go ───────────────────────────────────────────────────────────────────────
+vendor/
+*.test
+*.out
+
+# Test fixtures
+**/testdata/
+**/fixtures/
+EOF
+```
+
+**Rust:**
+```bash
+cat >> .graphifyignore << 'EOF'
+
+# ── Rust ─────────────────────────────────────────────────────────────────────
+# target/ already excluded by graphify default
+**/*.rs.bk
+
+# Test fixtures
+**/fixtures/
+**/test_data/
+EOF
+```
+
+> **Note on test source files** (`.java`, `.ts`, `.py`, etc.): test logic files are
+> intentionally NOT ignored. They contain domain knowledge, reveal how the system is
+> expected to behave, and produce high-value nodes in the graph. Only data/fixture files
+> are excluded since they are high-volume with no architectural signal.
+
+For **monorepos** mixing languages, append all relevant blocks.
+
+After writing, print the number of patterns added and confirm the file was created.
+
+---
+
+## Step 4 — Build the knowledge graph (skip if --skip-graph)
+
+> graphify will automatically respect the `.graphifyignore` written in Step 3.
 
 ### 3a — Ensure graphify is installed
 
@@ -259,7 +423,7 @@ with the modules listed as source paths (whichever graphify supports).
 
 ---
 
-## Step 4 — Graphify MCP is global — no `.mcp.json` needed for it
+## Step 5 — Graphify MCP is global — no `.mcp.json` needed for it
 
 graphify is configured globally via `~/.claude.json` using a wrapper script
 (`~/.claude/scripts/graphify-start.sh`) that resolves the graph path dynamically
@@ -304,7 +468,7 @@ workaround.
 
 ---
 
-## Step 5 — Generate `.vscode/CLAUDE.md` (skip if --skip-docs)
+## Step 6 — Generate `.vscode/CLAUDE.md` (skip if --skip-docs)
 
 ### 5a — Gather project metadata
 
@@ -442,7 +606,7 @@ platform, and what other modules it interacts with.]
 
 ---
 
-## Step 6 — Update `.gitignore`
+## Step 7 — Update `.gitignore`
 
 Read the current `.gitignore` (or create it if missing). Check whether `.cachebro`,
 `graphify-out`, and `.mcp.json` are already present. Append only the missing ones:
@@ -465,7 +629,7 @@ fi
 
 ---
 
-## Step 7 — Print summary
+## Step 8 — Print summary
 
 After all steps complete, print a concise summary:
 
@@ -473,6 +637,7 @@ After all steps complete, print a concise summary:
 ✓ cachebro MCP — [configured globally / MISSING — see instructions above]
 ✓ graphify global MCP — [configured globally / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
+✓ .graphifyignore written — [N patterns, Java/Node/Python/Go/Rust block]
 ✓ graphify built — graphify-out/graph.json ([N nodes, M edges] from graph_stats)
 ✓ .mcp.json written (project-scoped MCPs only) / skipped (none needed)
 ✓ .vscode/CLAUDE.md written
