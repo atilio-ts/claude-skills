@@ -193,7 +193,8 @@ Restart Claude Code after editing.
 ### 2c — Check houtini-lm global MCP
 
 houtini-lm is configured globally (not per-project) and connects Claude Code to the
-local LLM running in LM Studio on `localhost:1234`. Check that it is registered:
+local LLM running in LM Studio on `localhost:1234`. Check that it is registered and
+using a direct binary path (not `npx -y`, which is unreliable):
 
 ```bash
 claude mcp list 2>/dev/null | grep -i houtini
@@ -204,15 +205,33 @@ claude mcp list 2>/dev/null | grep -i houtini
 ```
 ⚠  houtini-lm global MCP not found.
 
-Register it globally with:
+Install and register globally with a direct binary path:
 
-  claude mcp add --scope user houtini-lm -- npx -y @houtini/lm
+  npm install -g @houtini/lm
+  HOUTINI_BIN="$(npm prefix -g)/bin/houtini-lm"
+  claude mcp add --scope user houtini-lm -- "$HOUTINI_BIN"
 
 Then restart Claude Code.
 ```
 
-**If present**, call `mcp__houtini-lm__discover` to verify the local LLM server is
-reachable:
+**If present but using `npx`**, print this message — the registration should be updated
+to use the installed binary for reliability:
+
+```
+⚠  houtini-lm is registered via npx — this can fail on slow networks or cold starts.
+
+Re-register with the direct binary path:
+
+  npm install -g @houtini/lm
+  claude mcp remove houtini-lm
+  HOUTINI_BIN="$(npm prefix -g)/bin/houtini-lm"
+  claude mcp add --scope user houtini-lm -- "$HOUTINI_BIN"
+
+Then restart Claude Code.
+```
+
+**If present with a direct binary path**, call `mcp__houtini-lm__discover` to verify
+the local LLM server is reachable:
 
 - If the tool returns `Status: ONLINE` → print: `✓ houtini-lm connected — <model name>`
 - If it returns `Status: OFFLINE` → print:
