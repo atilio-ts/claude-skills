@@ -57,8 +57,9 @@ diff -rq ~/.claude/memory/ ~/Projects/Personal/dev-setup/claude/memory/
 ```
 
 Los archivos de memoria que se rastrean son `MEMORY.md` y los archivos de feedback/user
-globales (`feedback_cachebro.md`, `user_profile.md`). Si hay nuevos archivos de feedback
-relevantes para cualquier máquina (no específicos a un proyecto), agregarlos al repo.
+globales (`feedback_cachebro.md`, `feedback_graphify.md`, `feedback_houtini.md`, `user_profile.md`).
+Si hay nuevos archivos de feedback relevantes para cualquier máquina (no específicos a un proyecto),
+agregarlos al repo.
 
 Directorios de `~/.claude/` que NO se sincronizan (auto-generados o runtime):
 - `backups/`, `cache/`, `commands/`, `debug/`, `ecc/`, `file-history/`
@@ -194,20 +195,19 @@ que realmente están instalados pero que `brew bundle dump` omite. Actualizar si
 
 ### 3.1 Skills en el repo personal
 
+Todos los skills personales están instalados como **symlinks** apuntando al repo:
+
 | Skill | Instalado como |
 |---|---|
-| `commit-message/` | directorio en `~/.claude/skills/` |
-| `estimate/` | directorio en `~/.claude/skills/` |
-| `user-story/` | symlink → repo |
+| `commit-message/` | symlink → repo |
+| `custom-init/` | symlink → repo |
+| `estimate/` | symlink → repo |
 | `sync-configuration/` | symlink → repo |
 | `update-skills/` | symlink → repo |
+| `user-story/` | symlink → repo |
 
-Para `commit-message` y `estimate` (no son symlinks), comparar y copiar si difieren:
-
-```bash
-diff ~/.claude/skills/commit-message/SKILL.md ~/Projects/Personal/claude-skills/commit-message/SKILL.md
-diff ~/.claude/skills/estimate/SKILL.md ~/Projects/Personal/claude-skills/estimate/SKILL.md
-```
+Como todos son symlinks, los cambios en el repo se reflejan automáticamente en `~/.claude/skills/`.
+No es necesario comparar ni copiar — si el symlink existe y apunta al repo, está al día.
 
 ### 3.2 Skills nuevos
 
