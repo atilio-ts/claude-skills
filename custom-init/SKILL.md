@@ -32,16 +32,18 @@ Bootstrap a new project with cachebro + graphify so every session starts fast an
 
 ## What this skill does
 
-1. **Verify cachebro MCP** — checks `~/.claude.json` for the cachebro server; prints a fix
-   command if it is missing.
+1. **Verify global MCPs** — checks that cachebro, graphify, and houtini-lm are registered
+   globally; prints fix commands for any that are missing. Verifies houtini-lm can reach
+   LM Studio via `mcp__houtini-lm__discover`.
 2. **Build knowledge graph** — runs graphify on the specified paths (or the whole repo),
    writes `graphify-out/graph.json`.
-3. **Wire graphify as project MCP** — writes `.mcp.json` pointing to the generated graph
-   and updates `.claude/settings.local.json` to enable it.
-4. **Generate `.vscode/CLAUDE.md`** — produces a filled-in project doc with module index,
+3. **Generate `.vscode/CLAUDE.md`** — produces a filled-in project doc with module index,
    build commands, architecture overview, and the Knowledge Graph workflow section.
    For monorepos, also creates one stub `<module>-CLAUDE.md` per module.
-5. **Update `.gitignore`** — appends `.cachebro` and `graphify-out` if they are missing.
+4. **Update `.gitignore`** — appends `.cachebro` and `graphify-out` if they are missing.
+
+> cachebro, graphify, and houtini-lm are all **global** MCPs. No `.mcp.json` is written
+> unless the project requires additional project-scoped MCPs beyond these three.
 
 ---
 
