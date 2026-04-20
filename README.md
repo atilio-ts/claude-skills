@@ -6,8 +6,13 @@ Personal collection of skills for [Claude Code](https://claude.ai/code).
 
 | Skill | Description |
 |-------|-------------|
-| [`/commit`](./commit/SKILL.md) | Generates commit messages in Conventional Commits format by reading the diff and project history. |
+| [`/commit-message`](./commit-message/SKILL.md) | Generates a conventional commit message by reading the staged diff and project history. |
+| [`/custom-init`](./custom-init/SKILL.md) | Bootstraps a new project with the full productivity setup: verifies global MCPs, builds the knowledge graph, generates `.vscode/CLAUDE.md`, and updates `.gitignore`. |
 | [`/estimate`](./estimate/SKILL.md) | Produces a technical analysis and effort estimation document for a feature or change, including phases, impact map, and justified hours. |
+| [`/readme`](./readme-generator/SKILL.md) | Generates or updates a professional README by analyzing the project's code, structure, and dependencies. Supports multiple output languages. |
+| [`/sync-configuration`](./sync-configuration/SKILL.md) | Syncs the `dev-setup` and `claude-skills` repos with the current machine state, detects diffs, applies changes, and commits + pushes both repos. |
+| [`/update-skills`](./update-skills/SKILL.md) | Updates all installed Claude Code skills and plugins: vercel-labs skills, caveman, and Claude marketplace plugins. |
+| [`/user-story`](./user-story/SKILL.md) | Drafts user stories or tasks for Jira and Asana from loose requirements, producing context, description, definition of done, and story points. |
 
 ---
 

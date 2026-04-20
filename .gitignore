@@ -27,3 +27,5 @@ $RECYCLE.BIN/
 # Environment
 .env
 .env.local
+
+.file-stash

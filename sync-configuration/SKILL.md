@@ -202,6 +202,7 @@ Todos los skills personales están instalados como **symlinks** apuntando al rep
 | `commit-message/` | symlink → repo |
 | `custom-init/` | symlink → repo |
 | `estimate/` | symlink → repo |
+| `readme-generator/` | symlink → repo |
 | `sync-configuration/` | symlink → repo |
 | `update-skills/` | symlink → repo |
 | `user-story/` | symlink → repo |
