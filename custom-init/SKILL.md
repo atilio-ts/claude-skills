@@ -1,8 +1,8 @@
 ---
 name: custom-init
-version: 1.1.0
+version: 1.2.0
 description: |
-  Bootstraps a new project with the full productivity setup: verifies cachebro,
+  Bootstraps a new project with the full productivity setup: verifies filestash,
   graphify, and houtini-lm are configured as global MCPs and online, writes a
   .graphifyignore tuned to the project type, builds the knowledge graph for the
   repo, generates a .vscode/CLAUDE.md (with per-module files for monorepos), and
@@ -19,7 +19,7 @@ allowed-tools:
 
 # /custom-init
 
-Bootstrap a new project with cachebro + graphify so every session starts fast and cheap.
+Bootstrap a new project with filestash + graphify so every session starts fast and cheap.
 
 ## Usage
 
@@ -32,7 +32,7 @@ Bootstrap a new project with cachebro + graphify so every session starts fast an
 
 ## What this skill does
 
-1. **Verify global MCPs** — checks that cachebro, graphify, and houtini-lm are registered
+1. **Verify global MCPs** — checks that filestash, graphify, and houtini-lm are registered
    globally; prints fix commands for any that are missing. Verifies houtini-lm can reach
    LM Studio via `mcp__houtini-lm__discover`.
 2. **Build knowledge graph** — runs graphify on the specified paths (or the whole repo),
@@ -40,9 +40,9 @@ Bootstrap a new project with cachebro + graphify so every session starts fast an
 3. **Generate `.vscode/CLAUDE.md`** — produces a filled-in project doc with module index,
    build commands, architecture overview, and the Knowledge Graph workflow section.
    For monorepos, also creates one stub `<module>-CLAUDE.md` per module.
-4. **Update `.gitignore`** — appends `.cachebro` and `graphify-out` if they are missing.
+4. **Update `.gitignore`** — appends `.filestash` and `graphify-out` if they are missing.
 
-> cachebro, graphify, and houtini-lm are all **global** MCPs. No `.mcp.json` is written
+> filestash, graphify, and houtini-lm are all **global** MCPs. No `.mcp.json` is written
 > unless the project requires additional project-scoped MCPs beyond these three.
 
 ---
@@ -91,9 +91,9 @@ for single-module repos).
 
 ## Step 2 — Verify global MCP setup
 
-### 2a — Check cachebro in `~/.claude.json`
+### 2a — Check filestash in `~/.claude.json`
 
-Read `~/.claude.json` and check for a `cachebro` key under `mcpServers`:
+Read `~/.claude.json` and check for a `filestash` key under `mcpServers`:
 
 ```bash
 python3 -c "
@@ -102,7 +102,7 @@ p = os.path.expanduser('~/.claude.json')
 try:
     d = json.load(open(p))
     mcp = d.get('mcpServers', {})
-    if 'cachebro' in mcp:
+    if 'filestash' in mcp:
         print('OK')
     else:
         print('MISSING')
@@ -111,29 +111,29 @@ except Exception as e:
 "
 ```
 
-**If cachebro is missing**, print this message to the user and continue — do NOT modify
+**If filestash is missing**, print this message to the user and continue — do NOT modify
 `~/.claude.json` automatically:
 
 ```
-⚠  cachebro MCP not found in ~/.claude.json.
+⚠  filestash MCP not found in ~/.claude.json.
 
 Install globally and add manually:
 
-  npm install -g cachebro
-  echo "$(npm prefix -g)/bin/cachebro"   # copy this path
+  npm install -g @claude-code/filestash
+  echo "$(npm prefix -g)/bin/filestash"   # copy this path
 
 Then open ~/.claude.json and insert under "mcpServers":
 
-  "cachebro": {
+  "filestash": {
     "command": "<path from above>",
     "args": ["serve"]
   }
 
-Do NOT use npx cachebro serve — it is unreliable when the npx cache expires.
+Do NOT use npx — it is unreliable when the npx cache expires.
 Restart Claude Code after editing.
 ```
 
-**If cachebro is present**, print: `✓ cachebro MCP is configured globally`.
+**If filestash is present**, print: `✓ filestash MCP is configured globally`.
 
 ### 2b — Check graphify global MCP in `~/.claude.json`
 
@@ -313,7 +313,7 @@ cat > .graphifyignore << 'EOF'
 
 # Tool output folders (machine-specific, no semantic value)
 graphify-out/
-.cachebro/
+.filestash/
 temporary/
 
 # IDE and OS noise
@@ -498,7 +498,7 @@ houtini-lm is registered globally and connects to LM Studio on `localhost:1234`.
 in Step 2c.
 
 Only create `.mcp.json` if this specific project requires MCPs beyond the three global
-ones (cachebro, graphify, houtini-lm). If no project-specific MCPs are needed, skip
+ones (filestash, graphify, houtini-lm). If no project-specific MCPs are needed, skip
 this file entirely.
 
 ### 4b — No per-project `.claude/` needed
@@ -608,7 +608,7 @@ A pre-built knowledge graph lives in `graphify-out/`.
 Workflow:
 1. Use `mcp__graphify__query_graph` or `mcp__graphify__get_neighbors` to find
    relevant nodes and their source file paths
-2. Use `mcp__cachebro__read_file` to read only those specific files (cached after
+2. Use `mcp__filestash__read_file` to read only those specific files (cached after
    first read)
 
 Available graph tools (auto-approved, no prompt):
@@ -653,14 +653,14 @@ platform, and what other modules it interacts with.]
 
 ## Step 7 — Update `.gitignore`
 
-Read the current `.gitignore` (or create it if missing). Check whether `.cachebro`
+Read the current `.gitignore` (or create it if missing). Check whether `.filestash`
 and `graphify-out` are already present. Append only the missing ones:
 
 ```bash
 GITIGNORE=".gitignore"
 MISSING=""
 
-grep -qxF ".cachebro" "$GITIGNORE" 2>/dev/null    || MISSING="$MISSING\n.cachebro"
+grep -qxF ".filestash" "$GITIGNORE" 2>/dev/null   || MISSING="$MISSING\n.filestash"
 grep -qxF "graphify-out" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\ngraphify-out"
 
 if [ -n "$MISSING" ]; then
@@ -681,7 +681,7 @@ fi
 After all steps complete, print a concise summary:
 
 ```
-✓ cachebro MCP — [configured globally / MISSING — see instructions above]
+✓ filestash MCP — [configured globally / MISSING — see instructions above]
 ✓ graphify global MCP — [configured globally / MISSING — see instructions above]
 ✓ houtini-lm global MCP — [connected (<model>) / registered but LM Studio offline / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
@@ -690,7 +690,7 @@ After all steps complete, print a concise summary:
 ✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
 ✓ .vscode/CLAUDE.md written
 ✓ .vscode/<module>-CLAUDE.md stubs written: [list]
-✓ .gitignore updated (.cachebro, graphify-out)
+✓ .gitignore updated (.filestash, graphify-out)
 
 Next steps:
   1. Restart Claude Code so the graphify MCP loads from the global wrapper.
@@ -713,7 +713,7 @@ Next steps:
 - **graphify is global** — never write graphify into `.mcp.json`. The global wrapper
   at `~/.claude/scripts/graphify-start.sh` handles all projects via `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
-  MCPs beyond the global ones (cachebro, graphify, houtini-lm). Add to `.gitignore`.
+  MCPs beyond the global ones (filestash, graphify, houtini-lm). Add to `.gitignore`.
 - **houtini-lm is global** — never write houtini-lm into `.mcp.json`. It is registered
   globally and connects to LM Studio on `localhost:1234`. Verify it is online via
   `mcp__houtini-lm__discover` during setup.
