@@ -1,10 +1,10 @@
 ---
 name: custom-init
-version: 1.2.0
+version: 2.0.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash,
-  graphify, and houtini-lm are configured as global MCPs and online, writes a
-  .graphifyignore tuned to the project type, builds the knowledge graph for the
+  code-review-graph, and houtini-lm are configured as global MCPs and online, writes a
+  .code-review-graphignore tuned to the project type, builds the knowledge graph for the
   repo, generates a .vscode/CLAUDE.md (with per-module files for monorepos), and
   adds the tool output folders to .gitignore.
 trigger: /custom-init
@@ -19,30 +19,30 @@ allowed-tools:
 
 # /custom-init
 
-Bootstrap a new project with filestash + graphify so every session starts fast and cheap.
+Bootstrap a new project with filestash + code-review-graph so every session starts fast and cheap.
 
 ## Usage
 
 ```
 /custom-init                        # auto-detect project structure, full setup
-/custom-init --modules rpo,nexito   # only graphify specific modules
-/custom-init --skip-graph           # skip graphify build (configure MCP only)
+/custom-init --modules rpo,nexito   # only build graph for specific modules
+/custom-init --skip-graph           # skip graph build (configure MCP only)
 /custom-init --skip-docs            # skip CLAUDE.md generation
 ```
 
 ## What this skill does
 
-1. **Verify global MCPs** — checks that filestash, graphify, and houtini-lm are registered
+1. **Verify global MCPs** — checks that filestash, code-review-graph, and houtini-lm are registered
    globally; prints fix commands for any that are missing. Verifies houtini-lm can reach
    LM Studio via `mcp__houtini-lm__discover`.
-2. **Build knowledge graph** — runs graphify on the specified paths (or the whole repo),
-   writes `graphify-out/graph.json`.
+2. **Build knowledge graph** — runs `code-review-graph build` on the specified paths (or the whole repo),
+   writes `.code-review-graph/` SQLite database.
 3. **Generate `.vscode/CLAUDE.md`** — produces a filled-in project doc with module index,
    build commands, architecture overview, and the Knowledge Graph workflow section.
    For monorepos, also creates one stub `<module>-CLAUDE.md` per module.
-4. **Update `.gitignore`** — appends `.filestash` and `graphify-out` if they are missing.
+4. **Update `.gitignore`** — appends `.filestash` and `.code-review-graph` if they are missing.
 
-> filestash, graphify, and houtini-lm are all **global** MCPs. No `.mcp.json` is written
+> filestash, code-review-graph, and houtini-lm are all **global** MCPs. No `.mcp.json` is written
 > unless the project requires additional project-scoped MCPs beyond these three.
 
 ---
@@ -135,9 +135,9 @@ Restart Claude Code after editing.
 
 **If filestash is present**, print: `✓ filestash MCP is configured globally`.
 
-### 2b — Check graphify global MCP in `~/.claude.json`
+### 2b — Check code-review-graph global MCP in `~/.claude.json`
 
-graphify is configured globally (not per-project). Check that the wrapper is present:
+code-review-graph is configured globally (not per-project) as a direct binary:
 
 ```bash
 python3 -c "
@@ -146,7 +146,7 @@ p = os.path.expanduser('~/.claude.json')
 try:
     d = json.load(open(p))
     mcp = d.get('mcpServers', {})
-    if 'graphify' in mcp:
+    if 'code-review-graph' in mcp:
         print('OK')
     else:
         print('MISSING')
@@ -155,40 +155,32 @@ except Exception as e:
 "
 ```
 
-Also verify the wrapper script exists:
+Also verify the binary exists:
 
 ```bash
-[ -f "$HOME/.claude/scripts/graphify-start.sh" ] && echo "OK" || echo "MISSING"
+[ -f "/Users/atilio/.local/bin/code-review-graph" ] && echo "OK" || echo "MISSING"
 ```
 
-**If graphify is missing**, print this message and continue — do NOT modify files automatically:
+**If code-review-graph is missing**, print this message and continue — do NOT modify files automatically:
 
 ```
-⚠  graphify global MCP not found.
+⚠  code-review-graph global MCP not found.
 
-1. Create ~/.claude/scripts/graphify-start.sh:
+Install and register globally:
 
-   #!/bin/bash
-   GRAPH_FILE="${PWD}/graphify-out/graph.json"
-   if [ ! -f "$GRAPH_FILE" ]; then
-     echo "graphify: no graph found at $GRAPH_FILE" >&2
-     exit 1
-   fi
-   exec /Users/<username>/.local/pipx/venvs/graphifyy/bin/python -m graphify.serve "$GRAPH_FILE"
+  pipx install code-review-graph
 
-   chmod +x ~/.claude/scripts/graphify-start.sh
+Then add to ~/.claude.json under "mcpServers":
 
-2. Add to ~/.claude.json under "mcpServers":
-
-   "graphify": {
-     "command": "bash",
-     "args": ["/Users/<username>/.claude/scripts/graphify-start.sh"]
-   }
+  "code-review-graph": {
+    "command": "/Users/<username>/.local/bin/code-review-graph",
+    "args": ["serve"]
+  }
 
 Restart Claude Code after editing.
 ```
 
-**If present**, print: `✓ graphify MCP is configured globally`.
+**If present**, print: `✓ code-review-graph MCP is configured globally`.
 
 ### 2c — Check houtini-lm global MCP
 
@@ -248,8 +240,7 @@ Do NOT fail the setup — continue with the remaining steps.
 ### 2d — Check `enableAllProjectMcpServers` in `~/.claude/settings.json`
 
 This setting auto-enables any `.mcp.json` found in a project root, without needing a
-per-project `.claude/settings.local.json`. Without it, graphify (and any project MCP)
-must be manually enabled every time.
+per-project `.claude/settings.local.json`.
 
 ```bash
 python3 -c "
@@ -282,37 +273,37 @@ Then restart Claude Code.
 
 ---
 
-## Step 3 — Write `.graphifyignore`
+## Step 3 — Write `.code-review-graphignore`
 
-graphify has native support for `.graphifyignore` (gitignore-style patterns). It already
+code-review-graph has native support for `.code-review-graphignore` (gitignore-style patterns). It already
 excludes common noise by default (`node_modules`, `__pycache__`, `.git`, `build`, `target`,
-`dist`, `out`, `venv`, lock files). The `.graphifyignore` file adds project-type-specific
-patterns that graphify does NOT exclude by default, reducing extraction cost.
+`dist`, `out`, `venv`, lock files). The `.code-review-graphignore` file adds project-type-specific
+patterns that are NOT excluded by default, reducing extraction cost.
 
 **This file should be committed** — it is project config, not machine-specific output.
 
-### 3a — Check if `.graphifyignore` already exists
+### 3a — Check if `.code-review-graphignore` already exists
 
 ```bash
-[ -f ".graphifyignore" ] && echo "EXISTS" || echo "MISSING"
+[ -f ".code-review-graphignore" ] && echo "EXISTS" || echo "MISSING"
 ```
 
 If it already exists, skip this step.
 
 ### 3b — Detect project type and write patterns
 
-Based on the build system detected in Step 1, write `.graphifyignore` with the
+Based on the build system detected in Step 1, write `.code-review-graphignore` with the
 appropriate patterns. Always include the universal block, then append the
 language-specific block.
 
 ```bash
-cat > .graphifyignore << 'EOF'
+cat > .code-review-graphignore << 'EOF'
 # ── Universal noise ──────────────────────────────────────────────────────────
-# graphify already skips: node_modules, __pycache__, .git, build, target,
-# dist, out, venv, lock files. These extend that baseline.
+# code-review-graph already skips: node_modules, __pycache__, .git, build,
+# target, dist, out, venv, lock files. These extend that baseline.
 
 # Tool output folders (machine-specific, no semantic value)
-graphify-out/
+.code-review-graph/
 .filestash/
 temporary/
 
@@ -327,7 +318,7 @@ Then append the block that matches the detected build system:
 
 **Java / Gradle or Maven:**
 ```bash
-cat >> .graphifyignore << 'EOF'
+cat >> .code-review-graphignore << 'EOF'
 
 # ── Java ─────────────────────────────────────────────────────────────────────
 # Compiled bytecode
@@ -344,7 +335,6 @@ gradle/wrapper/gradle-wrapper.jar
 local-maven/
 
 # Generated source (OpenAPI codegen output, etc.)
-# Note: build/ is already excluded by graphify default
 build/gm/
 
 # Test fixtures and generated test data (high volume, low semantic value)
@@ -357,7 +347,7 @@ EOF
 
 **Node.js / TypeScript:**
 ```bash
-cat >> .graphifyignore << 'EOF'
+cat >> .code-review-graphignore << 'EOF'
 
 # ── Node.js / TypeScript ─────────────────────────────────────────────────────
 # Framework build output
@@ -383,7 +373,7 @@ EOF
 
 **Python:**
 ```bash
-cat >> .graphifyignore << 'EOF'
+cat >> .code-review-graphignore << 'EOF'
 
 # ── Python ───────────────────────────────────────────────────────────────────
 *.pyc
@@ -405,7 +395,7 @@ EOF
 
 **Go:**
 ```bash
-cat >> .graphifyignore << 'EOF'
+cat >> .code-review-graphignore << 'EOF'
 
 # ── Go ───────────────────────────────────────────────────────────────────────
 vendor/
@@ -420,10 +410,9 @@ EOF
 
 **Rust:**
 ```bash
-cat >> .graphifyignore << 'EOF'
+cat >> .code-review-graphignore << 'EOF'
 
 # ── Rust ─────────────────────────────────────────────────────────────────────
-# target/ already excluded by graphify default
 **/*.rs.bk
 
 # Test fixtures
@@ -445,77 +434,84 @@ After writing, print the number of patterns added and confirm the file was creat
 
 ## Step 4 — Build the knowledge graph (skip if --skip-graph)
 
-> graphify will automatically respect the `.graphifyignore` written in Step 3.
+> code-review-graph will automatically respect the `.code-review-graphignore` written in Step 3.
 
-### 3a — Ensure graphify is installed
+### 4a — Ensure code-review-graph is installed
 
 ```bash
-GRAPHIFY_BIN=$(which graphify 2>/dev/null)
-if [ -n "$GRAPHIFY_BIN" ]; then
-    PYTHON=$(head -1 "$GRAPHIFY_BIN" | tr -d '#!')
-    case "$PYTHON" in
-        *[!a-zA-Z0-9/_.-]*) PYTHON="python3" ;;
-    esac
-else
-    PYTHON="python3"
-fi
-"$PYTHON" -c "import graphify" 2>/dev/null || \
-    "$PYTHON" -m pip install graphifyy -q 2>/dev/null || \
-    "$PYTHON" -m pip install graphifyy -q --break-system-packages 2>&1 | tail -3
-mkdir -p graphify-out
-"$PYTHON" -c "import sys; open('graphify-out/.graphify_python', 'w').write(sys.executable)"
+which code-review-graph 2>/dev/null && echo "OK" || echo "MISSING"
 ```
 
-### 3b — Run graphify
+If missing, print:
+
+```
+⚠  code-review-graph not found in PATH.
+
+Install with:
+
+  pipx install code-review-graph
+
+Then restart Claude Code and re-run /custom-init.
+```
+
+### 4b — Run the build
 
 If `--modules` was given (e.g. `rpo,nexito`), build the graph over those paths.
 Otherwise, if a `modules/` directory was detected, ask the user which modules to include
-before running. For single-module repos, use `.` as the source path.
+before running. For single-module repos, use the repo root.
 
-Use the graphify skill's full extraction pipeline — invoke `/graphify <path>` with the
-resolved path. This produces `graphify-out/graph.json`.
+```bash
+code-review-graph build
+```
 
-If multiple module paths are given, run graphify on each and merge, or run on the root
-with the modules listed as source paths (whichever graphify supports).
+For targeted builds over specific directories:
+
+```bash
+code-review-graph build --repo <path>
+```
+
+This produces `.code-review-graph/` (SQLite database) in the repo root.
+
+After build completes, run:
+
+```bash
+code-review-graph status
+```
+
+Print the node/edge counts from the status output.
 
 ---
 
-## Step 5 — Graphify MCP is global — no `.mcp.json` needed for it
+## Step 5 — code-review-graph MCP is global — no `.mcp.json` needed for it
 
-graphify is configured globally via `~/.claude.json` using a wrapper script
-(`~/.claude/scripts/graphify-start.sh`) that resolves the graph path dynamically
-from `$PWD` at startup. **Do not write graphify into `.mcp.json`.**
+code-review-graph is configured globally via `~/.claude.json` as a direct binary invocation.
+**Do not write code-review-graph into `.mcp.json`.**
 
-The global wrapper will automatically serve `graphify-out/graph.json` from this
-project's directory when Claude Code starts in it. If the graph file doesn't exist
-yet (e.g. before running graphify for the first time), the server exits with a warning
-and shows `✘ failed` in the MCP list — this is expected and harmless.
+The MCP server (`code-review-graph serve`) resolves the `.code-review-graph/` database
+dynamically from `$PWD` at startup. If the database doesn't exist yet (before first build),
+the server will still start but graph tools will return empty results — this is expected.
 
-### 4a — houtini-lm is global — no `.mcp.json` needed for it
+### 5a — houtini-lm is global — no `.mcp.json` needed for it
 
 houtini-lm is registered globally and connects to LM Studio on `localhost:1234`.
 **Do not write houtini-lm into `.mcp.json`.** Its availability was already verified
 in Step 2c.
 
 Only create `.mcp.json` if this specific project requires MCPs beyond the three global
-ones (filestash, graphify, houtini-lm). If no project-specific MCPs are needed, skip
+ones (filestash, code-review-graph, houtini-lm). If no project-specific MCPs are needed, skip
 this file entirely.
 
-### 4b — No per-project `.claude/` needed
+### 5b — No per-project `.claude/` needed
 
 Since `enableAllProjectMcpServers: true` lives in the global `~/.claude/settings.json`,
-any `.mcp.json` written in step 4a is picked up automatically. Do NOT create
+any `.mcp.json` written in step 5a is picked up automatically. Do NOT create
 `.claude/settings.local.json` or any `.claude/` folder in the project.
-
-If for any reason `enableAllProjectMcpServers` is missing from the global settings (as
-reported in step 2c), remind the user to add it globally rather than creating a local
-workaround.
 
 ---
 
 ## Step 6 — Generate `.vscode/CLAUDE.md` (skip if --skip-docs)
 
-### 5a — Gather project metadata
+### 6a — Gather project metadata
 
 Before writing, read as many of these as exist to fill in real values:
 
@@ -525,7 +521,7 @@ Before writing, read as many of these as exist to fill in real values:
 - `docker-compose.yml` — service names, ports
 - `Makefile` or `run.sh` — common commands
 
-### 5b — Detect language and build tool
+### 6b — Detect language and build tool
 
 Determine build commands based on what is present:
 
@@ -539,10 +535,10 @@ Determine build commands based on what is present:
 | `Cargo.toml` | Cargo | `cargo test` |
 | `go.mod` | Go | `go test ./...` |
 
-### 5c — Write central `.vscode/CLAUDE.md`
+### 6c — Write central `.vscode/CLAUDE.md`
 
 Create the `.vscode/` directory if it does not exist. Write the file using the template
-below. Fill in every placeholder with real values gathered in 5a–5b. Do not leave
+below. Fill in every placeholder with real values gathered in 6a–6b. Do not leave
 `[PLACEHOLDER]` text in the output — if you cannot determine the real value, use a
 reasonable default or omit the section.
 
@@ -599,30 +595,47 @@ infer from the codebase. Always include:]
 
 [Commands to start the local dev environment. Port numbers if detectable.]
 
+## Response Approach
+
+- Think before acting. Read existing files before writing code.
+- Be concise in output but thorough in reasoning.
+- Prefer editing over rewriting whole files.
+- Do not re-read files you have already read unless the file may have changed.
+- Skip files over 100KB unless explicitly required.
+- Suggest running `/cost` when a session runs long to monitor cache ratio.
+- Recommend starting a new session when switching to an unrelated task.
+- Test your code before declaring done.
+- No sycophantic openers or closing fluff.
+- Keep solutions simple and direct.
+- User instructions always override everything in this file.
+
 ## Knowledge Graph
 
-A pre-built knowledge graph lives in `graphify-out/`.
+A pre-built knowledge graph lives in `.code-review-graph/`.
 
-**Use the graph BEFORE reading files for any architecture or cross-module question.**
+**Use the graph BEFORE reading files for any architecture, cross-module, or change-impact question.**
 
 Workflow:
-1. Use `mcp__graphify__query_graph` or `mcp__graphify__get_neighbors` to find
-   relevant nodes and their source file paths
-2. Use `mcp__filestash__read_file` to read only those specific files (cached after
-   first read)
+1. Use `mcp__code-review-graph__semantic_search_nodes_tool` or `mcp__code-review-graph__query_graph_tool`
+   to find relevant nodes and their source file paths
+2. Use `mcp__filestash__read_file` to read only those specific files (cached after first read)
+3. Before touching any file, use `mcp__code-review-graph__get_impact_radius_tool` to assess blast radius
 
-Available graph tools (auto-approved, no prompt):
-- `mcp__graphify__query_graph` — BFS/DFS traversal from a concept
-- `mcp__graphify__get_node` — details on a specific node
-- `mcp__graphify__get_neighbors` — direct connections of a node
-- `mcp__graphify__shortest_path` — path between two concepts
-- `mcp__graphify__god_nodes` — most-connected nodes (core abstractions)
-- `mcp__graphify__graph_stats` — overall graph statistics
+Available graph tools:
+- `mcp__code-review-graph__get_minimal_context_tool` — ultra-compact context (~100 tokens), call first
+- `mcp__code-review-graph__semantic_search_nodes_tool` — find symbols by name or meaning
+- `mcp__code-review-graph__query_graph_tool` — callers, callees, imports, inheritance
+- `mcp__code-review-graph__traverse_graph_tool` — BFS/DFS traversal from any node
+- `mcp__code-review-graph__get_hub_nodes_tool` — most-connected nodes (core abstractions)
+- `mcp__code-review-graph__get_impact_radius_tool` — blast radius of changed files
+- `mcp__code-review-graph__detect_changes_tool` — risk-scored change impact for review
+- `mcp__code-review-graph__get_architecture_overview_tool` — architecture from community structure
+- `mcp__code-review-graph__list_graph_stats_tool` — graph size and health
 
-Update after significant code changes: `/graphify <module-path> --update`
+Update after significant code changes: `code-review-graph update`
 ```
 
-### 5d — Write per-module stub files (monorepos only)
+### 6d — Write per-module stub files (monorepos only)
 
 For each module in the module index, create `.vscode/<module>-CLAUDE.md` with a stub:
 
@@ -654,14 +667,14 @@ platform, and what other modules it interacts with.]
 ## Step 7 — Update `.gitignore`
 
 Read the current `.gitignore` (or create it if missing). Check whether `.filestash`
-and `graphify-out` are already present. Append only the missing ones:
+and `.code-review-graph` are already present. Append only the missing ones:
 
 ```bash
 GITIGNORE=".gitignore"
 MISSING=""
 
-grep -qxF ".filestash" "$GITIGNORE" 2>/dev/null   || MISSING="$MISSING\n.filestash"
-grep -qxF "graphify-out" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\ngraphify-out"
+grep -qxF ".filestash" "$GITIGNORE" 2>/dev/null          || MISSING="$MISSING\n.filestash"
+grep -qxF ".code-review-graph" "$GITIGNORE" 2>/dev/null  || MISSING="$MISSING\n.code-review-graph"
 
 if [ -n "$MISSING" ]; then
     printf "$MISSING\n" >> "$GITIGNORE"
@@ -672,7 +685,7 @@ fi
 ```
 
 > Only add `.mcp.json` to `.gitignore` if a project-specific `.mcp.json` was created
-> in Step 4a. If no project-specific MCPs were needed, skip this entry.
+> in Step 5a. If no project-specific MCPs were needed, skip this entry.
 
 ---
 
@@ -682,21 +695,21 @@ After all steps complete, print a concise summary:
 
 ```
 ✓ filestash MCP — [configured globally / MISSING — see instructions above]
-✓ graphify global MCP — [configured globally / MISSING — see instructions above]
+✓ code-review-graph global MCP — [configured globally / MISSING — see instructions above]
 ✓ houtini-lm global MCP — [connected (<model>) / registered but LM Studio offline / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
-✓ .graphifyignore written — [N patterns, Java/Node/Python/Go/Rust block]
-✓ graphify built — graphify-out/graph.json ([N nodes, M edges] from graph_stats)
+✓ .code-review-graphignore written — [N patterns, Java/Node/Python/Go/Rust block]
+✓ code-review-graph built — .code-review-graph/ ([N nodes, M edges] from status output)
 ✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
 ✓ .vscode/CLAUDE.md written
 ✓ .vscode/<module>-CLAUDE.md stubs written: [list]
-✓ .gitignore updated (.filestash, graphify-out)
+✓ .gitignore updated (.filestash, .code-review-graph)
 
 Next steps:
-  1. Restart Claude Code so the graphify MCP loads from the global wrapper.
+  1. Restart Claude Code so the code-review-graph MCP loads the new database.
   2. If houtini-lm was offline, start LM Studio and load a model before the session.
   3. Fill in any [TODO] placeholders in .vscode/CLAUDE.md.
-  4. Run /graphify <path> --update after significant code changes.
+  4. Run `code-review-graph update` after significant code changes.
 ```
 
 ---
@@ -710,12 +723,10 @@ Next steps:
 - **Never overwrite an existing `.vscode/CLAUDE.md`** without asking the user first.
   If it already exists, diff the proposed changes and ask for confirmation.
 - **Never add `.vscode/` to git** — it is always in `.gitignore`.
-- **graphify is global** — never write graphify into `.mcp.json`. The global wrapper
-  at `~/.claude/scripts/graphify-start.sh` handles all projects via `$PWD` resolution.
+- **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The global
+  binary at `/Users/atilio/.local/bin/code-review-graph` handles all projects via `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
-  MCPs beyond the global ones (filestash, graphify, houtini-lm). Add to `.gitignore`.
+  MCPs beyond the global ones (filestash, code-review-graph, houtini-lm). Add to `.gitignore`.
 - **houtini-lm is global** — never write houtini-lm into `.mcp.json`. It is registered
   globally and connects to LM Studio on `localhost:1234`. Verify it is online via
   `mcp__houtini-lm__discover` during setup.
-- For the graphify build step, delegate to the `/graphify` skill — do not re-implement
-  the extraction pipeline here.

@@ -50,7 +50,7 @@ The user may also provide context about the project inline:
 Run these checks before reading any file:
 
 ```
-1. Check for graphify-out/graph.json → use graphify tools if present
+1. Check for .code-review-graph/ → use code-review-graph tools if present
 2. Check for an existing README.md → read it if --update flag was given
 3. Detect the output language:
    - Use --lang argument if provided
@@ -73,10 +73,10 @@ Use the tools available to you to answer these questions from the actual code. *
 | Is there a license? | LICENSE file, package.json `license` field |
 | Are there environment variables? | `.env.example`, `docker-compose.yml`, config files |
 
-**If graphify is available**, use these tools instead of Glob/Grep for navigation:
-- `mcp__graphify__god_nodes` → identify the most connected/important modules
-- `mcp__graphify__query_graph` → find entry points, controllers, routes
-- `mcp__graphify__get_community` → understand module clusters
+**If `.code-review-graph/` exists**, use these tools instead of Glob/Grep for navigation:
+- `mcp__code-review-graph__get_hub_nodes_tool` → identify the most connected/important modules
+- `mcp__code-review-graph__query_graph_tool` → find entry points, controllers, routes
+- `mcp__code-review-graph__get_community_tool` → understand module clusters
 
 ### Step 3 — Determine which sections to include
 
