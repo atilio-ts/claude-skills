@@ -15,26 +15,35 @@ allowed-tools:
 
 You are generating a commit message. Follow these steps exactly.
 
-## Step 1 — Read the diff and history
+## Step 1 — Pre-flight: inventory staged files
 
 Run in parallel:
+
+```bash
+git status --short
+```
+
+```bash
+git diff --cached --stat
+```
 
 ```bash
 git log --format="%s%n%b%n---" -10
 ```
 
+**Show the staged file list to the user before continuing.**
+If no files are staged (`git diff --cached --stat` is empty), check for unstaged changes with `git diff --stat`.
+If both are empty, tell the user there are no changes to commit and stop.
+
+## Step 2 — Read the full diff
+
 ```bash
 git diff --staged
 ```
 
-```bash
-git diff
-```
+If `git diff --staged` is empty, use `git diff` instead.
 
-If `git diff --staged` is empty, use `git diff` (unstaged changes).
-If both are empty, tell the user there are no changes to commit.
-
-## Step 2 — Apply commit guidelines
+## Step 3 — Apply commit guidelines
 
 ### Format
 
@@ -85,8 +94,9 @@ Append `!` and add a `BREAKING CHANGE:` footer.
 
 - "Co-Authored-By" or any AI attribution
 - References to AI tools
+- The same idea or phrase more than once — consolidate duplicates into one bullet
 
-## Step 3 — Output the message
+## Step 4 — Output the message
 
 Output only the commit message, formatted in a code block.
 Do not explain the message unless the user asks.
