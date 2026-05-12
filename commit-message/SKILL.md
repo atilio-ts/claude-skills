@@ -103,3 +103,16 @@ Do not explain the message unless the user asks.
 
 If the diff spans multiple logical changes, suggest splitting into
 separate commits and propose one message per logical group.
+
+### Commit splitting — granularity rule
+
+When suggesting multiple commits, group by **concern**, not by file type or
+directory. Prefer 3–5 commits over 6+. Merge related infrastructure into one:
+
+- DB migrations + DB scripts + schema definitions → one commit
+- Domain model (enums, entities, value objects) → one commit
+- OpenAPI spec + generator config → one commit
+- Dev environment (docker, run scripts, app config, build files) → one commit
+
+Only split further if two groups have clearly different purposes or risk
+profiles (e.g., a breaking schema change vs. additive columns).
