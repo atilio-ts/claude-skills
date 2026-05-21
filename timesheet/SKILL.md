@@ -1,5 +1,5 @@
 ---
-name: timesheet
+name: personal:timesheet
 version: 1.0.0
 description: |
   Generates a timesheet report from the git changes in the current branch.

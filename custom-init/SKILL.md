@@ -1,5 +1,5 @@
 ---
-name: custom-init
+name: personal:custom-init
 version: 2.0.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash,
@@ -25,7 +25,7 @@ Bootstrap a new project with filestash + code-review-graph so every session star
 
 ```
 /custom-init                        # auto-detect project structure, full setup
-/custom-init --modules rpo,nexito   # only build graph for specific modules
+/custom-init --modules name         # only build graph for specific modules
 /custom-init --skip-graph           # skip graph build (configure MCP only)
 /custom-init --skip-docs            # skip CLAUDE.md generation
 ```

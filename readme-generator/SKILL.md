@@ -1,5 +1,5 @@
 ---
-name: readme-generator
+name: personal:readme-generator
 description: Generate or update a professional README for the current project by analyzing its code, structure, and dependencies. Supports multiple languages and adapts to the project type.
 trigger: /readme
 args:

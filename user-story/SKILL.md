@@ -1,5 +1,5 @@
 ---
-name: user-story
+name: personal:user-story
 version: 1.0.0
 description: |
   Redacta historias de usuario o tareas para Jira y Asana a partir de información

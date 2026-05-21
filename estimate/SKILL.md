@@ -1,5 +1,5 @@
 ---
-name: estimate
+name: personal:estimate
 version: 1.2.0
 description: |
   Generates a technical analysis and effort estimation document for a new
@@ -122,7 +122,7 @@ new endpoint with persistence, database migration + associated logic.
 | Situation | Recommended buffer |
 |-----------|:-----------------:|
 | Integration with an unknown external system | +15 % on that component |
-| Project-specific framework (jPOS, legacy system) | +15 % |
+| Project-specific framework | +15 % |
 | Infrastructure configuration dependency (email, storage) | +10 % |
 | Environment coordination for E2E testing or validation | +10 % on that phase |
 | Entirely new phase with no prior team experience | +20 % |
@@ -273,9 +273,7 @@ Generate the complete document using the format described below.
 
 ---
 
-**[Document code — e.g. OCAUY 003-26-01-TEC]**
 **[Date — format: Month DD, YYYY or DD de mes de AAAA depending on language]**
-**Confidential — Internal Document**
 
 ---
 ```

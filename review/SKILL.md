@@ -1,5 +1,5 @@
 ---
-name: review
+name: personal:review
 version: 1.0.0
 description: |
   Produce a numbered code review findings list WITHOUT applying any fixes.
