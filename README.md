@@ -10,7 +10,7 @@ Personal collection of skills for [Claude Code](https://claude.ai/code).
 | [`/custom-init`](./custom-init/SKILL.md) | Bootstraps a new project with the full productivity setup: verifies global MCPs, builds the knowledge graph, generates `.vscode/CLAUDE.md`, and updates `.gitignore`. |
 | [`/estimate`](./estimate/SKILL.md) | Produces a technical analysis and effort estimation document for a feature or change, including phases, impact map, and justified hours. |
 | [`/readme`](./readme-generator/SKILL.md) | Generates or updates a professional README by analyzing the project's code, structure, and dependencies. Supports multiple output languages. |
-| [`/user-story`](./user-story/SKILL.md) | Drafts user stories or tasks for Jira and Asana from loose requirements, producing context, description, definition of done, and story points. |
+| [`/user-story`](./user-story/SKILL.md) | Drafts stories, bugs, analysis tasks, or meeting notes for Jira and Asana from loose requirements, adapting format (markdown vs. plain text) and tone to the platform and task type. |
 
 ---
 
@@ -27,13 +27,26 @@ Skills let you:
 
 ## Skill structure
 
-Each skill lives in its own folder inside `~/.claude/skills/` and contains a single `SKILL.md` file:
+Each skill lives in its own folder inside `~/.claude/skills/` and contains a `SKILL.md` file:
 
 ```
 ~/.claude/skills/
 └── skill-name/
     └── SKILL.md
 ```
+
+For skills that cover several variants of the same task (e.g. different task types or output formats), `SKILL.md` can act as a thin orchestrator and delegate details to files in a `reference/` subfolder, read on demand instead of loaded every time:
+
+```
+~/.claude/skills/
+└── skill-name/
+    ├── SKILL.md
+    └── reference/
+        ├── variant-a.md
+        └── variant-b.md
+```
+
+See [`user-story`](./user-story/SKILL.md) for a real example: it routes to a `reference/` file per task type (story, bug, meeting, analysis) and per platform (Asana, Jira).
 
 `SKILL.md` has two parts:
 
