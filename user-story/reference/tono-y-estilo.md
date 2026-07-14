@@ -39,6 +39,13 @@ Ver `tipo-bugfix.md` para el ejemplo completo antes/después de un caso real.
   para el negocio cuando sea relevante.
 - **Longitud**: lo suficientemente detallado para que un tercero entienda el
   alcance, sin repetir información ni agregar relleno.
+- **Sin saltos de línea manuales dentro de un párrafo**: nunca cortes una
+  oración con un salto de línea para que se vea prolija en el archivo o en
+  el editor. Tanto Asana como Jira reformatean el texto dinámicamente según
+  el ancho de pantalla del que lo lee, así que un corte manual mitad de
+  oración termina en un renglón suelto y mal cortado dentro de la app. Cada
+  párrafo es una única línea continua; el salto de línea se usa solo entre
+  párrafos, secciones o ítems de una lista.
 - **Viñetas**: usar listas cuando hay más de dos elementos enumerables.
   Evitar párrafos densos con enumeraciones en prosa.
 
@@ -57,3 +64,5 @@ de un diseño que en su momento fue válido.
 - ¿Se evitó el lenguaje acusatorio o de reporte formal de incidente?
 - ¿Un Scrum Master que no programa podría explicarle a un stakeholder qué
   cambió y por qué, solo leyendo esto?
+- ¿Cada párrafo del resultado final va en una sola línea continua, sin
+  saltos de línea manuales a mitad de oración?

@@ -15,6 +15,12 @@ formato es **markdown completo**.
 - **Nunca incluye el campo Link a Jira** — la historia ya vive en Jira, no
   hace falta linkearse a sí misma.
 - **Siempre incluye Story Points**, salvo que el tipo sea Reunión.
+- **Sin saltos de línea manuales dentro de un párrafo**: cada párrafo va en
+  una sola línea continua. Jira reformatea el texto dinámicamente según el
+  ancho de pantalla, así que cortar líneas a mano para que se vean prolijas
+  en el editor termina en cortes irregulares dentro de la app. Los `##` y
+  `---` marcan la estructura; dentro de cada sección, el texto corrido no
+  lleva saltos manuales.
 
 ## Story Points
 
