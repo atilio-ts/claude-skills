@@ -56,32 +56,17 @@ resto de las inferencias (ver Paso 5 del `SKILL.md`).
 **Antes (solo el detalle técnico, difícil de seguir para un Scrum Master):**
 
 ```
-Comportamiento actual: Al hacer login con NBK por primera vez, internamente
-se intenta recuperar el usuario existente. Como el usuario es nuevo y no
-existe en la base de datos, se lanza IllegalStateException: Invalid handle,
-lo que resulta en un error 500.
+Comportamiento actual: Al hacer login con NBK por primera vez, internamente se intenta recuperar el usuario existente. Como el usuario es nuevo y no existe en la base de datos, se lanza IllegalStateException: Invalid handle, lo que resulta en un error 500.
 
-Causa raíz: la integración con Sherlog convirtió silenciosamente a la
-función utilizada saveSGBUser en un método de solo actualización (requiere
-existencia previa del usuario), rompiendo el flujo de creación que antes
-funcionaba como upsert.
+Causa raíz: la integración con Sherlog convirtió silenciosamente a la función utilizada saveSGBUser en un método de solo actualización (requiere existencia previa del usuario), rompiendo el flujo de creación que antes funcionaba como upsert.
 ```
 
 **Después (mismo detalle técnico, con la traducción de impacto agregada):**
 
 ```
-Comportamiento actual: cuando un usuario nuevo inicia sesión con NBK por
-primera vez, el login falla con un error 500 en vez de crearle la cuenta —
-en la práctica, ningún usuario nuevo puede entrar al sistema por esta vía.
+Comportamiento actual: cuando un usuario nuevo inicia sesión con NBK por primera vez, el login falla con un error 500 en vez de crearle la cuenta — en la práctica, ningún usuario nuevo puede entrar al sistema por esta vía.
 
-Causa raíz: internamente se intenta recuperar el usuario en la base de
-datos con saveSGBUser, pero al integrar Sherlog esa función pasó a exigir
-que el usuario ya exista (dejó de crear usuarios nuevos, solo actualiza los
-existentes). Como es la primera vez que este usuario inicia sesión, la
-búsqueda no encuentra nada y el sistema lanza
-IllegalStateException: Invalid handle.
+Causa raíz: internamente se intenta recuperar el usuario en la base de datos con saveSGBUser, pero al integrar Sherlog esa función pasó a exigir que el usuario ya exista (dejó de crear usuarios nuevos, solo actualiza los existentes). Como es la primera vez que este usuario inicia sesión, la búsqueda no encuentra nada y el sistema lanza IllegalStateException: Invalid handle.
 ```
 
-Notá que no se quitó ningún nombre técnico (`saveSGBUser`,
-`IllegalStateException: Invalid handle`) — se agregó la frase inicial que
-explica qué significa esto para alguien que usa el sistema.
+Notá que no se quitó ningún nombre técnico (`saveSGBUser`, `IllegalStateException: Invalid handle`) — se agregó la frase inicial que explica qué significa esto para alguien que usa el sistema. Notá también que cada párrafo del ejemplo va en una sola línea continua, sin cortes manuales — así es como debe quedar el texto real que se pega en Asana o Jira.

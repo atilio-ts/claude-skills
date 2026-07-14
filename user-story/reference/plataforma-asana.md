@@ -18,6 +18,11 @@ Por eso el formato es **texto plano**.
   incluso si en el momento no se tiene el link. Si el usuario no lo dio,
   dejar `[Pendiente]` como placeholder para que lo complete después.
 - **Nunca incluye Story Points** — ese campo es exclusivo de Jira.
+- **Sin saltos de línea manuales dentro de un párrafo**: cada párrafo va en
+  una sola línea continua. Asana reformatea el texto dinámicamente según el
+  ancho de pantalla, así que cortar líneas a mano para que se vean prolijas
+  en el editor termina en cortes irregulares dentro de la app. Solo hay
+  salto de línea entre secciones o entre ítems de una lista.
 
 ## Estructura final para Asana
 
@@ -46,8 +51,7 @@ Contexto/Descripción/Definición de hecho ni el cierre de Link a Jira.)
 [OPC-2326] Diseño de botón, formulario de devolución, modal de confirmación
 
 Contexto
-Esta tarea surge de la reunión de refinamiento y como parte del proyecto de
-sobres y cupones.
+Esta tarea surge de la reunión de refinamiento y como parte del proyecto de sobres y cupones.
 
 Descripción
 El objetivo de esta tarea es crear los diseños para los siguientes elementos:
@@ -56,8 +60,7 @@ El botón debe estar disponible solo para archivos anulables
 Al hacer clic, debe aparecer un modal de confirmación
 
 Definición de hecho
-Vistas para el botón de anular, modal de confirmación y formulario de
-devolución creadas
+Vistas para el botón de anular, modal de confirmación y formulario de devolución creadas
 ```
 
 Notá cómo no hay ningún símbolo de markdown ni siquiera en la lista de

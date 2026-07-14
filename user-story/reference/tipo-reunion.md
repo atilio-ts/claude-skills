@@ -47,17 +47,11 @@ Participantes:
 - Pablo Benitez
 
 Breve resumen:
-El día de hoy se llevó a cabo la code review de los últimos cambios
-introducidos al template Java para actualizarlo a la última versión estable
-(Java 25) con el equipo de integraciones.
+El día de hoy se llevó a cabo la code review de los últimos cambios introducidos al template Java para actualizarlo a la última versión estable (Java 25) con el equipo de integraciones.
 
-Se realizó una revisión de los cambios y demostraciones de funcionamiento con
-pruebas de flujo completo de la aplicación, y además se mostraron los nuevos
-ejemplos y herramientas incluidos dentro del template.
+Se realizó una revisión de los cambios y demostraciones de funcionamiento con pruebas de flujo completo de la aplicación, y además se mostraron los nuevos ejemplos y herramientas incluidos dentro del template.
 
-El equipo quedó conforme y se integraron los cambios, por lo cual esta pasa a
-ser la versión más reciente del template y la que será utilizada como punto
-de partida para nuevos proyectos de APIs en Java.
+El equipo quedó conforme y se integraron los cambios, por lo cual esta pasa a ser la versión más reciente del template y la que será utilizada como punto de partida para nuevos proyectos de APIs en Java.
 
 Tareas identificadas
 -
@@ -67,28 +61,20 @@ Tareas identificadas
 
 ```
 Contexto
-Se desea realizar un pase a producción de los últimos cambios implementados a
-Pagos Recurrentes RPO y al Backoffice. Entre estos cambios, los principales
-son:
+Se desea realizar un pase a producción de los últimos cambios implementados a Pagos Recurrentes RPO y al Backoffice. Entre estos cambios, los principales son:
 - Fix para actualización de credenciales.
 - Tokenización Mastercard
 - Fix para login con NBK
 - Fix para tokenización
 
 Breve resumen
-Durante esta reunión conversamos con Miguel acerca de los últimos cambios que
-estuvimos implementando al proyecto y sobre la posibilidad de incluirlos en
-el próximo pase a producción.
+Durante esta reunión conversamos con Miguel acerca de los últimos cambios que estuvimos implementando al proyecto y sobre la posibilidad de incluirlos en el próximo pase a producción.
 
-Acordamos que se estará implementando la tokenización por marca
-(Mastercard-VISA), para lo cual estaremos agregando una bandera dentro de RPO
-para poder controlar esto. Este cambio será testeado durante lo que queda de
-la semana y será desplegado el miércoles de la semana que viene.
+Acordamos que se estará implementando la tokenización por marca (Mastercard-VISA), para lo cual estaremos agregando una bandera dentro de RPO para poder controlar esto. Este cambio será testeado durante lo que queda de la semana y será desplegado el miércoles de la semana que viene.
 
 Tareas identificadas
 - Atilio Villalba implementará las banderas para tokenización por marca en RPO.
-- Una vez implementados los cambios, los mismos serán testeados antes del
-  pase a producción.
+- Una vez implementados los cambios, los mismos serán testeados antes del pase a producción.
 ```
 
 Nota: estos ejemplos muestran viñetas con "-" solo para legibilidad en este

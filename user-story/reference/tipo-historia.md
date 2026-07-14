@@ -38,12 +38,10 @@ averiguarlo como parte del trabajo (historia).
 
 ```
 Contexto
-Como parte del proyecto de modernización de APIs para comercios se solicitó
-la implementación de un endpoint para el proyecto AgreementSys.
+Como parte del proyecto de modernización de APIs para comercios se solicitó la implementación de un endpoint para el proyecto AgreementSys.
 
 Descripción del problema
-Se debe implementar la función de ConsTasas en el API moderna AgreementSys
-utilizando el servicio CoreAdapter para la comunicación con el Core.
+Se debe implementar la función de ConsTasas en el API moderna AgreementSys utilizando el servicio CoreAdapter para la comunicación con el Core.
 
 Definición de hecho
 Endpoint implementado y funcionando correctamente.
@@ -53,15 +51,10 @@ Endpoint implementado y funcionando correctamente.
 
 ```
 Contexto
-Actualmente la API MerchantIdP no puede acceder a la instancia de Cognito
-donde están los usuarios, porque ambos recursos están en cuentas distintas
-de AWS: MerchantIdP vive en la cuenta de EOP y el User Pool de Cognito en la
-cuenta de Comercios. Sin esta conexión, la API no puede completar el login,
-lo que bloquea el avance de la modernización.
+Actualmente la API MerchantIdP no puede acceder a la instancia de Cognito donde están los usuarios, porque ambos recursos están en cuentas distintas de AWS: MerchantIdP vive en la cuenta de EOP y el User Pool de Cognito en la cuenta de Comercios. Sin esta conexión, la API no puede completar el login, lo que bloquea el avance de la modernización.
 
 Descripción del problema
-Como alternativa proponemos una configuración basada en roles de IAM entre
-cuentas, sin credenciales estáticas:
+Como alternativa proponemos una configuración basada en roles de IAM entre cuentas, sin credenciales estáticas:
 1. Crear un rol en la cuenta de Comercios con permisos sobre el User Pool.
 2. Crear un rol en la cuenta de EOP que pueda asumir el anterior.
 3. La API usa ese segundo rol para operar sobre Cognito sin guardar claves.
@@ -81,9 +74,7 @@ Contexto
 https://app.asana.com/1/1206625192650364/task/1213312916378343
 
 Descripción del problema
-El objetivo de esta tarea es realizar las pruebas del endpoint de cambio de
-contraseña e implementar un fix en caso de ser necesario, ya que actualmente
-devuelve un error al intentar hacer la operación.
+El objetivo de esta tarea es realizar las pruebas del endpoint de cambio de contraseña e implementar un fix en caso de ser necesario, ya que actualmente devuelve un error al intentar hacer la operación.
 
 Definición de hecho
 Endpoint de cambio de contraseña funcionando correctamente.
