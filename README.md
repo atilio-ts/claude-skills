@@ -10,6 +10,7 @@ Personal collection of skills for [Claude Code](https://claude.ai/code).
 | [`/commit-message`](./commit-message/SKILL.md) | Generates a conventional commit message by reading the staged diff and project history. |
 | [`/custom-init`](./custom-init/SKILL.md) | Bootstraps a new project with the full productivity setup: verifies global MCPs, builds the knowledge graph, hands off to `/claude-docs` for the initial documentation set, and updates `.gitignore`. |
 | [`/estimate`](./estimate/SKILL.md) | Produces a technical analysis and effort estimation document for a feature or change, including phases, impact map, and justified hours. |
+| [`/new-skill`](./new-skill/SKILL.md) | Creates a new skill for this repo, or updates an existing one, following the conventions actually used across the current skill set (frontmatter, structure, README upkeep, local install). |
 | [`/readme`](./readme-generator/SKILL.md) | Generates or updates a professional README by analyzing the project's code, structure, and dependencies. Supports multiple output languages. |
 | [`/user-story`](./user-story/SKILL.md) | Drafts stories, bugs, analysis tasks, or meeting notes for Jira and Asana from loose requirements, adapting format (markdown vs. plain text) and tone to the platform and task type. |
 
