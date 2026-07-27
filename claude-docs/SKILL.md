@@ -1,6 +1,6 @@
 ---
 name: personal:claude-docs
-version: 1.0.0
+version: 1.1.0
 description: |
   Creates or updates a project's Claude Code documentation (.vscode/CLAUDE.md and its
   deep-dive docs) so it stays a reliable map of the codebase over time. Detects whether
@@ -93,6 +93,11 @@ If the audit surfaces redundant, superseded, or dead docs (two files covering th
 thing, a doc describing a mechanism that was later reverted, a doc for a resolved bug),
 read `reference/redundancy-and-deletion.md` before proposing anything be removed — there
 is a hard confirmation rule in there, don't skip it.
+
+If a doc describes a bug and you need to determine whether the current branch introduced
+it (vs. it being pre-existing), or a `RESOLVED` verdict hinges on a fix that lives on some
+other branch, read `reference/cross-branch-verification.md` for the concrete git recipe —
+don't answer either question from a loose read of a diff.
 
 For genuine gaps found via Step 2 that don't have a file yet, write them following
 `reference/structure-and-splitting.md`, same as create mode.
