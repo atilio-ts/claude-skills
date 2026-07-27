@@ -22,7 +22,10 @@ For each doc file (or section, for large files), assign one verdict:
 - **RESOLVED** — the doc describes a bug/issue that has since been fixed. Don't just delete
   it silently; check whether the fix is confirmed merged to the branch/mainline you care
   about (a fix can exist on an unmerged branch while the bug is still live everywhere
-  else — that's a meaningfully different situation from "fixed everywhere").
+  else — that's a meaningfully different situation from "fixed everywhere"). See
+  `cross-branch-verification.md` for how to verify an unmerged-branch fix properly (run it
+  in an isolated worktree, don't just read the diff) and how to determine whether the
+  branch you're auditing from actually introduced the bug in the first place.
 
 ## How to verify a claim
 

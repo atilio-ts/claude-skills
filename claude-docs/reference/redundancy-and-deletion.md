@@ -36,7 +36,9 @@ is low and the cost of an unwanted deletion is high.
 
 - A doc describing a bug that's still open on the branch/mainline you're working from,
   even if a fix exists somewhere unmerged — keep it as active documentation and note the
-  unmerged fix's location, don't archive it as resolved.
+  unmerged fix's location, don't archive it as resolved. See `cross-branch-verification.md`
+  for how to actually verify that unmerged fix works before citing it, rather than just
+  reading its diff.
 - Two docs covering the same area for different audiences (backend reference vs. frontend
   cheat sheet, deep architecture doc vs. quick runbook) — these are a deliberate split, not
   redundancy, even if the audit found they'd drifted apart on a shared fact. Fix the drift,
