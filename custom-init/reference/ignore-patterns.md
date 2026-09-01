@@ -25,11 +25,10 @@ cat > .code-review-graphignore << 'EOF'
 # ── Universal noise ──────────────────────────────────────────────────────────
 # code-review-graph already skips: node_modules, __pycache__, .git, build,
 # target, dist, out, venv, lock files. These extend that baseline.
-
-# Tool output folders (machine-specific, no semantic value)
-.code-review-graph/
-.filestash/
-temporary/
+#
+# Tool output dirs (.file-stash/, .code-review-graph/) need no entry here:
+# their content is a SQLite db, already skipped by the binary-file check
+# regardless of what this file says.
 
 # IDE and OS noise
 .idea/
