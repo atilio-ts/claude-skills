@@ -1,12 +1,13 @@
 ---
 name: personal:custom-init
-version: 2.1.0
+version: 2.2.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash,
   code-review-graph, and houtini-lm are configured as global MCPs and online, writes a
-  .code-review-graphignore tuned to the project type, builds the knowledge graph for the
-  repo, hands off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation
-  set, and adds the tool output folders to .gitignore.
+  .code-review-graphignore tuned to the project type, registers markdown as a parsed
+  language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
+  off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation set, and
+  adds the tool output folders to .gitignore.
 trigger: /custom-init
 allowed-tools:
   - Read
@@ -40,10 +41,14 @@ generation itself is not this skill's job — see Step 6.
 1. **Verify global MCPs** — checks that filestash, code-review-graph, and houtini-lm are
    registered globally; prints fix commands for any that are missing.
 2. **Write `.code-review-graphignore`** — patterns tuned to the detected project type.
-3. **Build knowledge graph** — runs `code-review-graph build`, writes `.code-review-graph/`.
-4. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and its deep-dive docs
+3. **Write `.vscode/code-review-graph/languages.toml`** — registers markdown so
+   `.vscode/*.md` docs become graph nodes.
+4. **Build knowledge graph** — runs `code-review-graph build --data-dir
+   .vscode/code-review-graph`.
+5. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and its deep-dive docs
    from the project metadata gathered in Step 1.
-5. **Update `.gitignore`** — appends `.filestash` and `.code-review-graph` if missing.
+6. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
+   otherwise neither tool needs its own entry).
 
 ---
 
@@ -118,6 +123,13 @@ Step 1.
 
 ---
 
+## Step 3b — Write `.vscode/code-review-graph/languages.toml`
+
+Read `reference/languages-config.md` and apply it. This registers markdown as a parsed
+language so `.vscode/*.md` project docs become graph nodes, not just visible files.
+
+---
+
 ## Step 4 — Build the knowledge graph (skip if `--skip-graph`)
 
 > code-review-graph automatically respects the `.code-review-graphignore` written in Step 3.
@@ -147,16 +159,23 @@ Otherwise, if a `modules/` directory was detected, ask the user which modules to
 before running. For single-module repos, use the repo root.
 
 ```bash
-code-review-graph build
+code-review-graph build --data-dir .vscode/code-review-graph
 ```
+
+`--data-dir` persists in a machine-wide registry (`~/.code-review-graph/registry.json`)
+keyed by resolved repo path — set it once and every later `build`/`status`/MCP call
+resolves there automatically, no need to repeat the flag.
 
 For targeted builds over specific directories:
 
 ```bash
-code-review-graph build --repo <path>
+code-review-graph build --repo <path> --data-dir <path>/.vscode/code-review-graph
 ```
 
-This produces `.code-review-graph/` (SQLite database) in the repo root.
+This produces `.vscode/code-review-graph/` (SQLite database, alongside the
+`languages.toml` from Step 3b) instead of a top-level `.code-review-graph/` — so nothing
+code-review-graph-related is ever created outside `.vscode/`, and no separate
+`.gitignore` entry is needed since `.vscode` is already ignored wholesale.
 
 After build completes, run `code-review-graph status` and print the node/edge counts.
 
@@ -188,23 +207,34 @@ documentation was not generated.
 
 ## Step 7 — Update `.gitignore`
 
-Read the current `.gitignore` (or create it if missing). Check whether `.filestash`
-and `.code-review-graph` are already present. Append only the missing ones:
+Read the current `.gitignore` (or create it if missing). On this machine both tools write
+into `.vscode/` — file-stash via the global `FILESTASH_DIR=.vscode/file-stash` env var in
+`~/.claude.json`'s MCP registration, code-review-graph via `--data-dir
+.vscode/code-review-graph` in Step 4b — so if `.vscode` is already ignored, neither needs
+its own line:
 
 ```bash
 GITIGNORE=".gitignore"
-MISSING=""
 
-grep -qxF ".filestash" "$GITIGNORE" 2>/dev/null          || MISSING="$MISSING\n.filestash"
-grep -qxF ".code-review-graph" "$GITIGNORE" 2>/dev/null  || MISSING="$MISSING\n.code-review-graph"
-
-if [ -n "$MISSING" ]; then
-    printf "$MISSING\n" >> "$GITIGNORE"
-    echo "Updated .gitignore"
+if grep -qxF ".vscode" "$GITIGNORE" 2>/dev/null; then
+    echo ".vscode already ignored — file-stash and code-review-graph need no separate entries"
 else
-    echo ".gitignore already up to date"
+    MISSING=""
+    # NOTE: the real default directory is .file-stash (with a hyphen), not .filestash —
+    # a mismatch existed here previously.
+    grep -qxF ".file-stash" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\n.file-stash"
+    if [ -n "$MISSING" ]; then
+        printf "$MISSING\n" >> "$GITIGNORE"
+        echo "Updated .gitignore (.vscode not ignored here — added .file-stash explicitly; add .code-review-graph too if not using --data-dir)"
+    else
+        echo ".gitignore already up to date"
+    fi
 fi
 ```
+
+> If `~/.claude.json` doesn't have `FILESTASH_DIR` set yet, file-stash still writes to
+> `.file-stash` at the repo root regardless of what this step does — that's a global MCP
+> config change outside this skill's scope, see DEV_SETUP.md's file-stash section.
 
 > Only add `.mcp.json` to `.gitignore` if a project-specific `.mcp.json` was created
 > in Step 5. If no project-specific MCPs were needed, skip this entry.
@@ -221,10 +251,11 @@ After all steps complete, print a concise summary:
 ✓ houtini-lm global MCP — [connected (<model>) / registered but LM Studio offline / MISSING — see instructions above]
 ✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
 ✓ .code-review-graphignore written — [N patterns, Java/Node/Python/Go/Rust block]
-✓ code-review-graph built — .code-review-graph/ ([N nodes, M edges] from status output)
+✓ .vscode/code-review-graph/languages.toml written — [markdown registered / already existed]
+✓ code-review-graph built — .vscode/code-review-graph/ ([N nodes, M edges] from status output)
 ✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
 ✓ .vscode/CLAUDE.md and deep-dive docs — [generated via /claude-docs / skipped (--skip-docs)]
-✓ .gitignore updated (.filestash, .code-review-graph)
+✓ .gitignore updated (.file-stash added / neither tool needs an entry — .vscode already covers both)
 
 Next steps:
   1. Restart Claude Code so the code-review-graph MCP loads the new database.
@@ -250,6 +281,12 @@ Next steps:
   work with no `git checkout` safety net. Never delete a file in there without explicit
   user confirmation (this matters most in `/claude-docs`'s audit mode, not this skill,
   but it's worth remembering while writing anything under `.vscode/`).
+- **`.vscode/code-review-graph/languages.toml` should still be written even though this
+  machine has a global fallback** (`~/.claude/code-review-graph/languages.toml`, applied
+  by a patch to the pipx install — see `dev-setup/code-review-graph/patch_global_languages.py`).
+  The repo-local file is what makes the config explicit and portable to a machine without
+  that patch — but note it is NOT committed (it lives under gitignored `.vscode/`), unlike
+  `.code-review-graphignore`. Don't claim otherwise when printing the final summary.
 - **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
   global binary at `/Users/atilio/.local/bin/code-review-graph` handles all projects via
   `$PWD` resolution.

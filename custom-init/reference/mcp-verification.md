@@ -41,7 +41,10 @@ Then open ~/.claude.json and insert under "mcpServers":
 
   "filestash": {
     "command": "<path from above>",
-    "args": ["serve"]
+    "args": ["serve"],
+    "env": {
+      "FILESTASH_DIR": ".vscode/file-stash"
+    }
   }
 
 Do NOT use npx — it is unreliable when the npx cache expires.
@@ -197,10 +200,13 @@ Then restart Claude Code.
 
 filestash, code-review-graph, and houtini-lm are all global. **Never write any of them
 into a project's `.mcp.json`.** The code-review-graph MCP server (`code-review-graph serve`)
-resolves the `.code-review-graph/` database dynamically from `$PWD` at startup — if the
-database doesn't exist yet (before first build), the server still starts but graph tools
-return empty results, which is expected. houtini-lm connects to LM Studio the same way
-regardless of which project you're in.
+resolves the database dynamically from `$PWD` at startup — by default that's
+`.code-review-graph/`, but this machine builds into `.vscode/code-review-graph` via
+`--data-dir` (Step 4b), which the server follows automatically through the same
+`~/.code-review-graph/registry.json` lookup the CLI uses. If the database doesn't exist
+yet (before first build), the server still starts but graph tools return empty results,
+which is expected. houtini-lm connects to LM Studio the same way regardless of which
+project you're in.
 
 Only create `.mcp.json` if the specific project needs MCPs beyond these three global ones.
 If no project-specific MCPs are needed, skip that file entirely, and do not create
