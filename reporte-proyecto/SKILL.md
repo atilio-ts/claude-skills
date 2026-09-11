@@ -1,13 +1,13 @@
 ---
 name: personal:reporte-proyecto
-version: 1.0.0
+version: 1.1.0
 description: |
-  Genera la actualización de estado semanal del proyecto para el cliente, a
-  partir de las tareas del proyecto (Java Developer Backend) creadas o
+  Genera la actualización de estado semanal del proyecto Jira OCJD (OCAUY
+  003-24 Java Developer) para el cliente, a partir de las issues creadas o
   actualizadas en la semana con sus comentarios, y del reporte de la semana
-  anterior como referencia de continuidad. Usar cuando se pida un "reporte
-  semanal", "actualización de estado del proyecto" o equivalente para este
-  cliente.
+  anterior (Confluence) como referencia de continuidad. Usar cuando se pida
+  un "reporte semanal", "actualización de estado del proyecto" o
+  equivalente para este cliente.
 trigger: /reporte-proyecto
 allowed-tools:
   - Read
@@ -28,9 +28,9 @@ fijas, listo para copiar y enviar, sin mención de nombres de personas,
 enlaces ni IDs de tareas.
 
 Nota de portabilidad: estas instrucciones están pensadas para ejecutarse
-tanto como skill de Claude Code como cargadas directamente en un agente de
-Rovo (Confluence/Jira). No asumas mecanismos propios de un entorno u otro —
-todo lo que hace falta está en este archivo.
+como agente de Rovo dentro de Jira/Confluence, no como skill local de
+Claude Code. No asumas mecanismos propios de Claude Code (leer
+`reference/x.md`, etc.) — todo lo que hace falta está en este archivo.
 
 ---
 
@@ -45,13 +45,18 @@ Hay dos fuentes obligatorias:
    o actualizadas en la última semana, junto con sus comentarios y
    bitácoras.
 
-Cómo conseguirlas, según el entorno disponible:
+Cómo conseguirlas:
 
-- Si tenés acceso a Jira/Confluence vía Atlassian Rovo, buscá ahí: las
-  tareas del proyecto actualizadas en los últimos 7 días con sus
-  comentarios, y el reporte de la semana anterior si está publicado como
-  página de Confluence.
-- Si no tenés esas fuentes disponibles, o la información encontrada no
+- **Tareas y comentarios**: el proyecto es Jira, clave **OCJD** ("OCAUY
+  003-24 Java Developer"). Buscá las issues actualizadas en los últimos 7
+  días con `searchJiraIssuesUsingJql` usando algo como
+  `project = OCJD AND updated >= -7d ORDER BY updated DESC`, incluyendo el
+  campo `comment` en `fields` para traer los comentarios de cada issue.
+- **Reporte de la semana anterior**: buscalo en Confluence con
+  `searchConfluenceUsingCql` (por ejemplo `space = "<espacio del proyecto>"
+  AND title ~ "actualización de estado"` o similar) y traé la página más
+  reciente con `getConfluencePage`.
+- Si esas búsquedas no devuelven nada útil, o la información encontrada no
   alcanza para escribir el reporte con confianza, pedile al usuario que
   pegue las tareas/comentarios y el reporte anterior antes de continuar. No
   inventes avances, problemas o próximos pasos que no estén respaldados por
