@@ -2,8 +2,8 @@
 name: personal:custom-init
 version: 2.2.0
 description: |
-  Bootstraps a new project with the full productivity setup: verifies filestash,
-  code-review-graph, and houtini-lm are configured as global MCPs and online, writes a
+  Bootstraps a new project with the full productivity setup: verifies filestash
+  and code-review-graph are configured as global MCPs and online, writes a
   .code-review-graphignore tuned to the project type, registers markdown as a parsed
   language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
   off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation set, and
@@ -38,7 +38,7 @@ generation itself is not this skill's job — see Step 6.
 
 ## What this skill does
 
-1. **Verify global MCPs** — checks that filestash, code-review-graph, and houtini-lm are
+1. **Verify global MCPs** — checks that filestash and code-review-graph are
    registered globally; prints fix commands for any that are missing.
 2. **Write `.code-review-graphignore`** — patterns tuned to the detected project type.
 3. **Write `.vscode/code-review-graph/languages.toml`** — registers markdown so
@@ -111,8 +111,8 @@ Determine build commands based on what is present:
 
 ## Step 2 — Verify global MCP setup
 
-Read `reference/mcp-verification.md` and apply it in full (checks 2a–2d: filestash,
-code-review-graph, houtini-lm, and `enableAllProjectMcpServers`).
+Read `reference/mcp-verification.md` and apply it in full (checks 2a–2b: filestash and
+code-review-graph).
 
 ---
 
@@ -181,11 +181,11 @@ After build completes, run `code-review-graph status` and print the node/edge co
 
 ---
 
-## Step 5 — No project `.mcp.json` needed for the global three
+## Step 5 — No project `.mcp.json` needed for the global two
 
-filestash, code-review-graph, and houtini-lm are all global — already covered in
+filestash and code-review-graph are both global — already covered in
 `reference/mcp-verification.md`. Only create `.mcp.json` if this specific project needs
-MCPs beyond those three; if so, add it to `.gitignore` in Step 7. If no project-specific
+MCPs beyond those two; if so, add it to `.gitignore` in Step 7. If no project-specific
 MCPs are needed, skip `.mcp.json` and any `.claude/` folder entirely.
 
 ---
@@ -248,8 +248,6 @@ After all steps complete, print a concise summary:
 ```
 ✓ filestash MCP — [configured globally / MISSING — see instructions above]
 ✓ code-review-graph global MCP — [configured globally / MISSING — see instructions above]
-✓ houtini-lm global MCP — [connected (<model>) / registered but LM Studio offline / MISSING — see instructions above]
-✓ enableAllProjectMcpServers — [set globally / MISSING — see instructions above]
 ✓ .code-review-graphignore written — [N patterns, Java/Node/Python/Go/Rust block]
 ✓ .vscode/code-review-graph/languages.toml written — [markdown registered / already existed]
 ✓ code-review-graph built — .vscode/code-review-graph/ ([N nodes, M edges] from status output)
@@ -259,9 +257,8 @@ After all steps complete, print a concise summary:
 
 Next steps:
   1. Restart Claude Code so the code-review-graph MCP loads the new database.
-  2. If houtini-lm was offline, start LM Studio and load a model before the session.
-  3. Run `code-review-graph update` after significant code changes.
-  4. Run /claude-docs periodically as the codebase evolves — generated docs go stale
+  2. Run `code-review-graph update` after significant code changes.
+  3. Run /claude-docs periodically as the codebase evolves — generated docs go stale
      fast, and /claude-docs's audit mode catches drift against the current code.
 ```
 
@@ -271,8 +268,8 @@ Next steps:
 
 - **Never modify `~/.claude.json` or `~/.claude/settings.json` automatically** — only
   print instructions for the user.
-- **Never create `.claude/settings.local.json` in the project** — the global
-  `enableAllProjectMcpServers: true` in `~/.claude/settings.json` makes it unnecessary.
+- **Never create `.claude/settings.local.json` in the project** — project settings live in
+  `.vscode/.claude/`.
 - **Never overwrite an existing `.vscode/CLAUDE.md`** without asking the user first — and
   in practice this shouldn't come up, since Step 6 delegates to `/claude-docs`, which
   already detects existing docs and switches to audit-and-update mode instead of
@@ -291,8 +288,5 @@ Next steps:
   global binary at `/Users/atilio/.local/bin/code-review-graph` handles all projects via
   `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
-  MCPs beyond the global ones (filestash, code-review-graph, houtini-lm). Add it to
+  MCPs beyond the global ones (filestash, code-review-graph). Add it to
   `.gitignore`.
-- **houtini-lm is global** — never write houtini-lm into `.mcp.json`. It is registered
-  globally and connects to LM Studio on `localhost:1234`. Verify it is online via
-  `mcp__houtini-lm__discover` during setup.
