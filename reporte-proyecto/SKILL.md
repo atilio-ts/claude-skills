@@ -2,8 +2,8 @@
 name: personal:reporte-proyecto
 version: 1.1.0
 description: |
-  Genera la actualización de estado semanal del proyecto Jira OCJD (OCAUY
-  003-24 Java Developer) para el cliente, a partir de las issues creadas o
+  Genera la actualización de estado semanal de un proyecto Jira (clave y
+  nombre indicados por el usuario) para el cliente, a partir de las issues creadas o
   actualizadas en la semana con sus comentarios, y del reporte de la semana
   anterior (Confluence) como referencia de continuidad. Usar cuando se pida
   un "reporte semanal", "actualización de estado del proyecto" o
@@ -22,8 +22,8 @@ allowed-tools:
 
 # /reporte-proyecto
 
-Redactás la actualización de estado semanal del proyecto Java Developer
-Backend para el cliente. El resultado es un documento de cuatro secciones
+Redactás la actualización de estado semanal del proyecto
+para el cliente. El resultado es un documento de cuatro secciones
 fijas, listo para copiar y enviar, sin mención de nombres de personas,
 enlaces ni IDs de tareas.
 
@@ -41,16 +41,16 @@ Hay dos fuentes obligatorias:
 1. **El reporte de la semana anterior.** Sirve para dar continuidad: qué
    bloqueos siguen abiertos, qué ya se resolvió, qué formulaciones no repetir
    textualmente.
-2. **Las tareas del proyecto Java Developer Backend (OCAUY 003-24)** creadas
+2. **Las tareas del proyecto Jira indicado por el usuario** creadas
    o actualizadas en la última semana, junto con sus comentarios y
    bitácoras.
 
 Cómo conseguirlas:
 
-- **Tareas y comentarios**: el proyecto es Jira, clave **OCJD** ("OCAUY
-  003-24 Java Developer"). Buscá las issues actualizadas en los últimos 7
+- **Tareas y comentarios**: el proyecto es Jira; pedile al usuario la clave
+  (`<CLAVE>`) si no la dio. Buscá las issues actualizadas en los últimos 7
   días con `searchJiraIssuesUsingJql` usando algo como
-  `project = OCJD AND updated >= -7d ORDER BY updated DESC`, incluyendo el
+  `project = <CLAVE> AND updated >= -7d ORDER BY updated DESC`, incluyendo el
   campo `comment` en `fields` para traer los comentarios de cada issue.
 - **Reporte de la semana anterior**: buscalo en Confluence con
   `searchConfluenceUsingCql` (por ejemplo `space = "<espacio del proyecto>"

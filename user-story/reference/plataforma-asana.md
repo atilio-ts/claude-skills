@@ -14,7 +14,7 @@ Por eso el formato es **texto plano**.
   viñeta — así aparecen en las notas reales del equipo. Cada ítem va en su
   propia línea y se distingue por el salto de línea, no por un símbolo.
 - **Título**: va como primera línea del cuerpo de la nota.
-- **Cierre obligatorio**: siempre termina con el campo `Link a JIRA de OCA`,
+- **Cierre obligatorio**: siempre termina con el campo `Link a JIRA`,
   incluso si en el momento no se tiene el link. Si el usuario no lo dio,
   dejar `[Pendiente]` como placeholder para que lo complete después.
 - **Nunca incluye Story Points** — ese campo es exclusivo de Jira.
@@ -38,7 +38,7 @@ Descripción del problema
 Definición de hecho
 [...]
 
-Link a JIRA de OCA
+Link a JIRA
 [link o [Pendiente]]
 ```
 

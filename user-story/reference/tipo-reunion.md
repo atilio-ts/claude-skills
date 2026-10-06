@@ -61,19 +61,19 @@ Tareas identificadas
 
 ```
 Contexto
-Se desea realizar un pase a producción de los últimos cambios implementados a Pagos Recurrentes RPO y al Backoffice. Entre estos cambios, los principales son:
+Se desea realizar un pase a producción de los últimos cambios implementados a Pagos Recurrentes y al panel de administración. Entre estos cambios, los principales son:
 - Fix para actualización de credenciales.
-- Tokenización Mastercard
-- Fix para login con NBK
+- Tokenización por marca de tarjeta
+- Fix para login con un proveedor externo (SSO)
 - Fix para tokenización
 
 Breve resumen
-Durante esta reunión conversamos con Miguel acerca de los últimos cambios que estuvimos implementando al proyecto y sobre la posibilidad de incluirlos en el próximo pase a producción.
+Durante esta reunión conversamos con Martín acerca de los últimos cambios que estuvimos implementando al proyecto y sobre la posibilidad de incluirlos en el próximo pase a producción.
 
-Acordamos que se estará implementando la tokenización por marca (Mastercard-VISA), para lo cual estaremos agregando una bandera dentro de RPO para poder controlar esto. Este cambio será testeado durante lo que queda de la semana y será desplegado el miércoles de la semana que viene.
+Acordamos que se estará implementando la tokenización por marca (Marca A - Marca B), para lo cual estaremos agregando una bandera dentro del servicio de pagos para poder controlar esto. Este cambio será testeado durante lo que queda de la semana y será desplegado el miércoles de la semana que viene.
 
 Tareas identificadas
-- Atilio Villalba implementará las banderas para tokenización por marca en RPO.
+- [Nombre Apellido] implementará las banderas para tokenización por marca en el servicio de pagos.
 - Una vez implementados los cambios, los mismos serán testeados antes del pase a producción.
 ```
 

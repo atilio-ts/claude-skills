@@ -47,11 +47,11 @@ Documento de propuesta corregido en caso de ser necesario y estimación de horas
 
 ```
 Contexto
-https://app.asana.com/1/1206625192650364/task/1213716667976418
+https://app.asana.com/0/0000000000000000/0000000000000000
 
 Descripción de la tarea
-Se solicitó estimar el esfuerzo en horas de agregar alertas a RPO en los distintos puntos de falla del flujo: ABU, Pay Studio, Integrity, generación de resultados y liquidación. Se pidió priorizar ABU y Pay Studio.
+Se solicitó estimar el esfuerzo en horas de agregar alertas al servicio de pagos en los distintos puntos de falla del flujo: actualizador de tarjetas, procesador de pagos, validador antifraude, generación de resultados y liquidación. Se pidió priorizar el actualizador de tarjetas y el procesador de pagos.
 
 Definición de hecho
-Estimación de esfuerzo, en horas y en complejidad, para agregar esta funcionalidad a RPO.
+Estimación de esfuerzo, en horas y en complejidad, para agregar esta funcionalidad al servicio de pagos.
 ```

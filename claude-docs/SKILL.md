@@ -63,7 +63,7 @@ Read `reference/gap-analysis.md` now, regardless of mode. It explains how to fin
 project's real "component map" — the entry-point/config layer that enumerates what
 actually exists (routes, deploy configs, job schedulers, CLI commands, public API surface,
 depending on project type) — and how to cross-check that map against what's already
-documented. This is the step that finds "PayStudio has zero docs" or "this cron job was
+documented. This is the step that finds "the billing service has zero docs" or "this cron job was
 never mentioned anywhere" — don't skip it even in create mode, since a shallow
 directory-listing pass misses subsystems that only show up in configuration.
 

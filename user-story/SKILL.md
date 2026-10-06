@@ -69,7 +69,7 @@ Si el usuario no indicó si esto es para **Asana** o **Jira**, preguntaselo
 siempre — incluso si el tipo es Reunión — explicando la diferencia central:
 
 - **Asana**: texto plano, sin markdown, y siempre cierra con el campo
-  "Link a JIRA de OCA".
+  "Link a JIRA".
 - **Jira**: markdown completo, e incluye Story Points.
 
 Según la respuesta, leé:
@@ -103,7 +103,7 @@ Antes de mostrar el resultado final:
 3. Si la plataforma es Jira, verificá que los Story Points sean coherentes
    con la complejidad descrita.
 4. Si la plataforma es Asana, verificá que el campo Título esté presente y
-   que el cierre "Link a JIRA de OCA" no haya quedado afuera (con el link
+   que el cierre "Link a JIRA" no haya quedado afuera (con el link
    real o `[Pendiente]`).
 5. Pasá el checklist de `reference/tono-y-estilo.md`.
 

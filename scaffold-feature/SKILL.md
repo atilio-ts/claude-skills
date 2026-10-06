@@ -7,9 +7,9 @@ description: |
   the api-projectbase-spring template (api/application/domain/infrastructure Gradle
   modules, CleanArchBeanRegistry classpath-scanning DI, no Spring annotations in
   domain/application, ArchUnit-enforced layering). Detects the project's base package
-  automatically so the same skill works unmodified across sibling OCA modernization
-  repos (oca.backofficenexito, oca.backofficeaudit, and future ones like FileBus/RPO).
-  Use when starting a new feature or integration port in one of these repos.
+  automatically so the same skill works unmodified across sibling
+  repos built from the same template. Use when starting a new feature or integration
+  port in one of these repos.
 trigger: /scaffold-feature
 allowed-tools:
   - Read
@@ -30,7 +30,7 @@ packages, and imports.
 
 ```
 /scaffold-feature feature GetSystemParameter
-/scaffold-feature port Sherlog
+/scaffold-feature port Payments
 ```
 
 ---
@@ -60,10 +60,10 @@ BASE_PKG_PATH=$(find modules/domain/src/main/java -mindepth 3 -maxdepth 3 -type 
 BASE_PACKAGE=$(echo "$BASE_PKG_PATH" | tr '/' '.')
 ```
 
-This resolves to e.g. `uy.oca.backofficenexito` in `oca.backofficenexito`, or
-`uy.oca.backofficeaudit` in `oca.backofficeaudit` — use `$BASE_PACKAGE` /
+This resolves to e.g. `com.example.app` in `my-app`, or
+`com.example.audit` in `my-audit-app` — use `$BASE_PACKAGE` /
 `$BASE_PKG_PATH` everywhere below. **Never hardcode a package name**, even though the
-examples in this file use `uy.oca.backofficenexito` for concreteness.
+examples in this file use `com.example.app` for concreteness.
 
 ## Step 3 — Consult before writing anything
 
@@ -75,7 +75,7 @@ it cannot see on its own. Before generating a single file:
    agent exists (something like `audit-expert` — a sibling project that already
    implemented something similar), consult it first: a working precedent beats
    inventing a new variant. If a legacy-system agent exists (something like
-   `nexito-legacy-expert`), consult it for the real behavior this feature/port needs to
+   `legacy-system-expert`), consult it for the real behavior this feature/port needs to
    preserve.
 2. Read the project's own architecture docs if present (`.vscode/CLAUDE.md` and its
    module deep-dives, any `docs/*-clean-architecture.md`, `error-handling.md`) — they
@@ -94,7 +94,7 @@ in the current project rather than assuming the names above are present.
 | | Business feature | External integration port |
 |---|---|---|
 | When | Internal logic, invoked by a controller or another feature | Talks to an external system (HTTP, direct DB, SDK) |
-| Naming | Verb+noun (`GetSystemParameter`, `CreateActivityRecord`) | Noun of the external system (`Sherlog`, `Rpo`, `MerchantIdp`) |
+| Naming | Verb+noun (`GetSystemParameter`, `CreateActivityRecord`) | Noun of the external system (`Payments`, `Ledger`, `IdentityProvider`) |
 | Interface package | `application.feature.<camelCaseName>` | `application.contract` |
 | Impl package | `application.feature.<camelCaseName>.impl` | `infrastructure.contract.impl` |
 
@@ -105,12 +105,12 @@ Spring annotations; this is an ArchUnit-enforced rule in every project this skil
 
 ## Step 5a — Generate a business feature
 
-Real example already in `oca.backofficenexito` — match this exact shape, not this
+Real example already in `my-app` — match this exact shape, not this
 content:
 
 ```java
 // application/feature/validateApi/IValidateAPI.java
-package uy.oca.backofficenexito.application.feature.validateApi;
+package com.example.app.application.feature.validateApi;
 
 public interface IValidateAPI {
     void checkApiKey(String givenApiKey);
@@ -119,9 +119,9 @@ public interface IValidateAPI {
 
 ```java
 // application/feature/validateApi/impl/ValidateAPIImpl.java
-package uy.oca.backofficenexito.application.feature.validateApi.impl;
+package com.example.app.application.feature.validateApi.impl;
 
-import uy.oca.backofficenexito.application.feature.validateApi.IValidateAPI;
+import com.example.app.application.feature.validateApi.IValidateAPI;
 
 public class ValidateAPIImpl implements IValidateAPI {
     @Override
@@ -185,7 +185,7 @@ don't loosen the ArchUnit rule to make it pass.
   implementation method must compile but throw `UnsupportedOperationException` with a
   `// TODO` comment until the real logic is written (ideally after Step 3's consultation).
 - Never hardcode the base package — always detect it (Step 2), even though this file's
-  examples use `uy.oca.backofficenexito` for concreteness.
+  examples use `com.example.app` for concreteness.
 - If Step 1 doesn't confirm the project uses this template, say so explicitly and
   generate nothing — this skill is specific to this DI/layering convention, not a
   generic Spring Boot scaffolder.

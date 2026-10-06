@@ -12,8 +12,8 @@ una traducción a impacto, en una frase, para quien no lee código.
 
 Ejemplo de la traducción que hay que hacer siempre:
 
-> Solo lo técnico: "credentialUpdate se sobrescribe entre el driver de ABU y
-> el de Cybersource."
+> Solo lo técnico: "credentialUpdate se sobrescribe entre el driver del actualizador y
+> el del procesador."
 
 > Con impacto agregado: "El campo que indica si la tarjeta fue actualizada
 > se pisa entre dos pasos del proceso, lo que hace que el comercio no reciba

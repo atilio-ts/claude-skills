@@ -94,7 +94,7 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 
 | Action type | Spanish pattern | Example |
 |-------------|----------------|---------|
-| Creating new code | `Implementacion de [what] en [where]` | `Implementacion de job de alertas en modulo RPO` |
+| Creating new code | `Implementacion de [what] en [where]` | `Implementacion de job de alertas en modulo de pagos` |
 | Updating/modifying | `Actualizacion de [what] en [where]` | `Actualizacion de configuracion de variables de entorno` |
 | Analysis/research | `Analisis de [what] para [purpose]` | `Analisis de implementacion de sistema de alertas` |
 | Review/verification | `Revision de [what]` | `Revision de endpoints y configuracion del workflow` |
@@ -107,7 +107,7 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 
 | Action type | English pattern | Example |
 |-------------|----------------|---------|
-| Creating new code | `Implementation of [what] in [where]` | `Implementation of alerts job in RPO module` |
+| Creating new code | `Implementation of [what] in [where]` | `Implementation of alerts job in payments module` |
 | Updating/modifying | `Update of [what] in [where]` | `Update of environment variable configuration` |
 | Analysis/research | `Analysis of [what] for [purpose]` | `Analysis of alerts system implementation` |
 | Review/verification | `Review of [what]` | `Review of endpoints and workflow configuration` |
@@ -124,7 +124,7 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 - Use markdown, asterisks, or formatting inside the description
 
 **DO:**
-- Name the module, service, or component (e.g., "modulo RPO", "backoffice", "workflow de pagos")
+- Name the module, service, or component (e.g., "modulo de pagos", "backoffice", "workflow de pagos")
 - Be specific about what changed (config, endpoint, service, job, builder, validator, etc.)
 - Match the level of specificity in the examples above
 

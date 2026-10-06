@@ -77,7 +77,7 @@ If `git diff --staged` is empty, use `git diff` instead.
 ### Scope (optional)
 
 Add in parentheses when it clarifies which module is affected:
-`fix(rpo): ...`, `feature(nexito): ...`
+`fix(auth): ...`, `feature(billing): ...`
 
 ### Breaking changes
 

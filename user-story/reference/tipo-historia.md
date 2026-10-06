@@ -27,7 +27,7 @@ averiguarlo como parte del trabajo (historia).
 - La descripción explica el **qué** y el **por qué**, no un tutorial paso a
   paso de cómo programarlo.
 - Si la tarea involucra varios repos o componentes, listalos explícitamente
-  (ver ejemplo de Cognito abajo) — ayuda a quien lee a dimensionar el alcance
+  (ver ejemplo de User Pool abajo) — ayuda a quien lee a dimensionar el alcance
   sin tener que adivinar.
 - Aplicá igual las reglas de `tono-y-estilo.md`: los nombres técnicos se
   mantienen, pero el impacto se explica en palabras simples.
@@ -38,10 +38,10 @@ averiguarlo como parte del trabajo (historia).
 
 ```
 Contexto
-Como parte del proyecto de modernización de APIs para comercios se solicitó la implementación de un endpoint para el proyecto AgreementSys.
+Como parte del proyecto de modernización de APIs para clientes se solicitó la implementación de un endpoint para el proyecto Acuerdos.
 
 Descripción del problema
-Se debe implementar la función de ConsTasas en el API moderna AgreementSys utilizando el servicio CoreAdapter para la comunicación con el Core.
+Se debe implementar la función de consulta de tasas en la API moderna de Acuerdos utilizando el servicio Adaptador para la comunicación con el sistema central.
 
 Definición de hecho
 Endpoint implementado y funcionando correctamente.
@@ -51,27 +51,27 @@ Endpoint implementado y funcionando correctamente.
 
 ```
 Contexto
-Actualmente la API MerchantIdP no puede acceder a la instancia de Cognito donde están los usuarios, porque ambos recursos están en cuentas distintas de AWS: MerchantIdP vive en la cuenta de EOP y el User Pool de Cognito en la cuenta de Comercios. Sin esta conexión, la API no puede completar el login, lo que bloquea el avance de la modernización.
+Actualmente la API de identidad no puede acceder al User Pool donde están los usuarios, porque ambos recursos están en cuentas distintas de AWS: la API vive en la cuenta de Plataforma y el User Pool en la cuenta de Clientes. Sin esta conexión, la API no puede completar el login, lo que bloquea el avance de la modernización.
 
 Descripción del problema
 Como alternativa proponemos una configuración basada en roles de IAM entre cuentas, sin credenciales estáticas:
-1. Crear un rol en la cuenta de Comercios con permisos sobre el User Pool.
-2. Crear un rol en la cuenta de EOP que pueda asumir el anterior.
-3. La API usa ese segundo rol para operar sobre Cognito sin guardar claves.
+1. Crear un rol en la cuenta de Clientes con permisos sobre el User Pool.
+2. Crear un rol en la cuenta de Plataforma que pueda asumir el anterior.
+3. La API usa ese segundo rol para operar sobre el User Pool sin guardar claves.
 
 Definición de hecho
-API conectada a Cognito y funcionando correctamente.
+API conectada al User Pool y funcionando correctamente.
 
 Repositorio
-BFF: https://okgitdesl001.oca.uy.corp.itaubank.com/oca-apis-v2/oca.merchantidp
-Contrato: https://okgitdesl001.oca.uy.corp.itaubank.com/oca-aws-api-gateway/oca-merchantidp
+BFF: https://git.example.com/org/api-identidad
+Contrato: https://git.example.com/org/api-identidad-contrato
 ```
 
 **Ejemplo de tarea técnica/chore (no hay "problema", hay una tarea a validar):**
 
 ```
 Contexto
-https://app.asana.com/1/1206625192650364/task/1213312916378343
+https://app.asana.com/0/0000000000000000/0000000000000000
 
 Descripción del problema
 El objetivo de esta tarea es realizar las pruebas del endpoint de cambio de contraseña e implementar un fix en caso de ser necesario, ya que actualmente devuelve un error al intentar hacer la operación.
