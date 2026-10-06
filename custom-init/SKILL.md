@@ -1,13 +1,14 @@
 ---
 name: personal:custom-init
-version: 2.2.0
+version: 2.3.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash
   and code-review-graph are configured as global MCPs and online, writes a
   .code-review-graphignore tuned to the project type, registers markdown as a parsed
   language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
   off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation set, and
-  adds the tool output folders to .gitignore.
+  adds the tool output folders to .gitignore, and links .claude/{agents,skills} to
+  .vscode/.claude.
 trigger: /custom-init
 allowed-tools:
   - Read
@@ -49,6 +50,8 @@ generation itself is not this skill's job — see Step 6.
    from the project metadata gathered in Step 1.
 6. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
    otherwise neither tool needs its own entry).
+7. **Link `.claude/{agents,skills}`** — symlinks them to `.vscode/.claude/` and adds
+   `.claude/` to `.git/info/exclude`.
 
 ---
 
@@ -154,7 +157,7 @@ Then restart Claude Code and re-run /custom-init.
 
 ### 4b — Run the build
 
-If `--modules` was given (e.g. `rpo,nexito`), build the graph over those paths.
+If `--modules` was given (e.g. `api,worker`), build the graph over those paths.
 Otherwise, if a `modules/` directory was detected, ask the user which modules to include
 before running. For single-module repos, use the repo root.
 
@@ -241,6 +244,34 @@ fi
 
 ---
 
+## Step 7b — Link `.claude/{agents,skills}` to `.vscode/.claude`
+
+Project agents and skills live in `.vscode/.claude/`; the repo-root `.claude/agents` and
+`.claude/skills` are symlinks to them so Claude Code can find them, and `.claude/` is
+excluded locally so nothing shows up in git.
+
+```bash
+mkdir -p .vscode/.claude/agents .vscode/.claude/skills .claude
+for d in agents skills; do
+    if [ -L ".claude/$d" ]; then
+        echo ".claude/$d already linked"
+    elif [ -e ".claude/$d" ]; then
+        echo "WARNING: .claude/$d exists and is not a symlink — left untouched"
+    else
+        ln -s "../.vscode/.claude/$d" ".claude/$d"
+    fi
+done
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    EXCLUDE=$(git rev-parse --git-path info/exclude)
+    grep -qxF ".claude/" "$EXCLUDE" 2>/dev/null || echo ".claude/" >> "$EXCLUDE"
+fi
+```
+
+Never move or delete an existing `.claude/agents` or `.claude/skills` directory — if one
+is a real directory, report it in the summary and let the user decide.
+
+---
+
 ## Step 8 — Print summary
 
 After all steps complete, print a concise summary:
@@ -254,6 +285,7 @@ After all steps complete, print a concise summary:
 ✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
 ✓ .vscode/CLAUDE.md and deep-dive docs — [generated via /claude-docs / skipped (--skip-docs)]
 ✓ .gitignore updated (.file-stash added / neither tool needs an entry — .vscode already covers both)
+✓ .claude/{agents,skills} — [linked to .vscode/.claude / already linked / left untouched (real directory)]
 
 Next steps:
   1. Restart Claude Code so the code-review-graph MCP loads the new database.
@@ -285,7 +317,7 @@ Next steps:
   that patch — but note it is NOT committed (it lives under gitignored `.vscode/`), unlike
   `.code-review-graphignore`. Don't claim otherwise when printing the final summary.
 - **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
-  global binary at `/Users/atilio/.local/bin/code-review-graph` handles all projects via
+  global binary at `$HOME/.local/bin/code-review-graph` handles all projects via
   `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
   MCPs beyond the global ones (filestash, code-review-graph). Add it to

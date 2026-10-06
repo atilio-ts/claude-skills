@@ -80,7 +80,7 @@ except Exception as e:
 Also verify the binary exists:
 
 ```bash
-[ -f "/Users/atilio/.local/bin/code-review-graph" ] && echo "OK" || echo "MISSING"
+[ -f "$HOME/.local/bin/code-review-graph" ] && echo "OK" || echo "MISSING"
 ```
 
 **If missing**, print this message and continue:
