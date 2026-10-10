@@ -1,6 +1,6 @@
 ---
 name: personal:reporte-proyecto
-version: 1.1.0
+version: 1.2.0
 description: |
   Genera la actualización de estado semanal de un proyecto Jira (clave y
   nombre indicados por el usuario) para el cliente, a partir de las issues creadas o
@@ -32,15 +32,38 @@ como agente de Rovo dentro de Jira/Confluence, no como skill local de
 Claude Code. No asumas mecanismos propios de Claude Code (leer
 `reference/x.md`, etc.) — todo lo que hace falta está en este archivo.
 
+## Modo local (carpeta de reportes)
+
+Cuando se ejecuta en la carpeta local de reportes (la que tiene `old/` y
+`prompts/`) en lugar de Rovo:
+
+- `old/` contiene todos los reportes ya enviados, en PDF, uno por semana. Los
+  de 2026 se llaman `DD-MM-26 Actualización semanal de estado del proyecto.pdf`;
+  los más viejos tienen prefijos distintos (por ejemplo "PROY 003-24 ... - Asana").
+  Esos PDFs son la fuente de continuidad: se leen con `pdftotext`.
+- El borrador de la semana lo deja el usuario en `current-report.md` en la raíz.
+  Cuando el reporte queda final, el usuario lo exporta a PDF y lo mueve a `old/`.
+  Por eso la raíz queda vacía entre semanas y el reporte anterior siempre está
+  en `old/`.
+- Si no hay borrador, redactar desde las tareas y comentarios que el usuario
+  pegue, siguiendo los mismos pasos.
+- Entregar el resultado como `.md` en la raíz, con nombre
+  `DD-MM-26 Actualización semanal de estado del proyecto.md` y sin pisar
+  `current-report.md`. Aplicar ediciones puntuales que pida el usuario sobre ese
+  archivo en lugar de reescribirlo entero.
+
 ---
 
 ## Step 1 — Reunir la información
 
 Hay dos fuentes obligatorias:
 
-1. **El reporte de la semana anterior.** Sirve para dar continuidad: qué
-   bloqueos siguen abiertos, qué ya se resolvió, qué formulaciones no repetir
-   textualmente.
+1. **El reporte de la semana anterior** (y en modo local, los 2 o 3 anteriores
+   de `old/`, ordenados por fecha, no por nombre de archivo). Siempre
+   revisarlo antes de redactar. Sirve para mantener el hilo de cómo vienen las
+   tareas: qué bloqueos siguen abiertos, qué ya se resolvió, en qué estado quedó
+   cada frente (en revisión, en QA, esperando producción) y qué formulaciones no
+   repetir textualmente.
 2. **Las tareas del proyecto Jira indicado por el usuario** creadas
    o actualizadas en la última semana, junto con sus comentarios y
    bitácoras.
@@ -80,6 +103,17 @@ Antes de redactar, agrupá cada tarea/comentario en uno de estos tres baldes:
   comentarios indican como siguiente paso.
 
 Esta clasificación alimenta directamente las secciones 2 a 4 del reporte.
+
+**Mantener el hilo.** Para cada frente del reporte anterior, decidir su
+estado actual y reflejarlo con la progresión real, sin repetir la frase de la
+semana pasada. Progresión típica: en revisión → pase a QA y pruebas iniciadas
+→ pruebas finalizadas correctamente → a la espera del momento oportuno para el
+pase a producción → pasado a producción. Si un frente avanzó de etapa, el
+reporte lo dice (por ejemplo, lo que la semana pasada "se mantuvo en revisión"
+esta semana pasó a QA). Si pasó a QA, el frente sale de "pendiente de revisión"
+en Problemas y Próximos Pasos y pasa a "continuar las pruebas" o "coordinar el
+pase a producción". El usuario es quien confirma en qué etapa está cada
+cambio: ante la duda, asumirlo y dejarlo marcado al final para confirmar.
 
 ---
 
@@ -122,7 +156,8 @@ Cada sección sigue la misma estructura obligatoria:
 ### Próximos Pasos
 
 - Apertura: "Para la próxima semana, el equipo se enfocará en [tema A] y en
-  [tema B]."
+  [tema B]." (los reportes recientes también usan "Durante la próxima semana
+  se deberá continuar con ..."; ambas son válidas).
 - Bullets: acciones concretas, cada una empezando con un verbo de acción
   (Completar, Realizar, Coordinar, Continuar, Evaluar, Monitorear,
   Implementar).
@@ -157,6 +192,39 @@ Los puntos clave incluyen:
 - Sin saltos de línea manuales a mitad de oración: cada párrafo o bullet es
   una única línea continua.
 
+### Nivel de lenguaje
+
+El público incluye gente no técnica, y aunque lo sea no conoce el detalle del
+código. Patrón observado en todos los reportes anteriores:
+
+- Se nombran sistemas, APIs, funcionalidades, procesos y ambientes (el
+  sistema de pagos, la pasarela, el bus de archivos, S3, DEV, QA, Backoffice).
+- Nunca se nombran tablas, columnas, índices, clases, métodos, campos, ids
+  internos ni nombres de variables. Nada entre backticks. Una pregunta de
+  control: si el término solo existe dentro del código, no va.
+- La causa raíz se explica por su efecto funcional o de negocio ("podía
+  asociar una subida de archivo al lote equivocado"), o por la dependencia
+  externa que la provoca, no por el mecanismo de código que la arreglaba.
+- La solución se describe por lo que logra ("evita que el conflicto frene el
+  procesamiento"), no por cómo está implementada. Se puede mencionar que se
+  agregó una prueba automatizada, sin detallarla.
+- Evitar jerga de desarrollo ("refactor", "batch", "backend/frontend" salvo que
+  sea necesario, "template", "arquitectura clean"): preferir "separación",
+  "lote", "nueva arquitectura".
+- Términos de infraestructura (runner, pipeline, Jenkins, AWS) se pueden usar
+  tal cual, sin explicar la implementación. Herramientas internas poco
+  conocidas se aclaran una vez ("repositorio de la empresa (Artifactory)").
+- Largo: Resumen, una o dos líneas por bullet. Avances Realizados, dos a
+  cuatro líneas por bullet, centradas en qué se hizo y para qué.
+- Para cada bullet con frente concreto, abrir con "Para <frente>, se ..." como
+  en los reportes anteriores.
+
+### Formato de salida
+
+Markdown: título `#` con la fecha, secciones `##`, bullets con `-`, línea en
+blanco entre todos los bloques (incluida antes de cada `##`). Respetar tildes y
+ñ.
+
 ---
 
 ## Step 5 — Verificar y entregar
@@ -173,6 +241,15 @@ Antes de mostrar el resultado final, revisá:
   los hay, sacalos.
 - ¿Se usó "avances significativos" en algún lado? Si sí, corregilo a
   "avances".
+- ¿Quedó algún identificador de código, nombre de tabla o campo, o backtick?
+  Si sí, reemplazalo por su efecto funcional.
+- ¿Cada frente conserva su hilo respecto al reporte anterior (misma
+  progresión de etapas, sin retroceder ni repetir el estado de la semana
+  pasada)?
+- ¿Cada sección tiene entre 2 y 5 bullets? Fusionar bullets afines si hay más.
+- Si el usuario editó el archivo a mano, revisar de nuevo sus cambios contra
+  estas reglas (nombres de personas, saltos de línea faltantes, tildes) y
+  avisarle en vez de revertirlos.
 
 Mostrá el resultado completo listo para copiar. Si tuviste que asumir algo
 por falta de información (por ejemplo, el estado de un bloqueo que no
