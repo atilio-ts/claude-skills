@@ -51,7 +51,7 @@ generation itself is not this skill's job — see Step 6.
 6. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
    otherwise neither tool needs its own entry).
 7. **Link `.claude/{agents,skills}`** — symlinks them to `.vscode/.claude/` and adds
-   `.claude/` to `.git/info/exclude`.
+   `.claude/` to `.git/info/exclude`; also links `.omp/agents` and excludes `.omp/`.
 
 ---
 
@@ -267,6 +267,24 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 ```
 
+oh-my-pi ignores `.claude/agents`, so project agents also need `.omp/agents` (skills are
+already read from `.claude/skills`):
+
+```bash
+mkdir -p .omp
+if [ -L .omp/agents ]; then
+    echo ".omp/agents already linked"
+elif [ -e .omp/agents ]; then
+    echo "WARNING: .omp/agents exists and is not a symlink — left untouched"
+else
+    ln -s ../.vscode/.claude/agents .omp/agents
+fi
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    EXCLUDE=$(git rev-parse --git-path info/exclude)
+    grep -qxF ".omp/" "$EXCLUDE" 2>/dev/null || echo ".omp/" >> "$EXCLUDE"
+fi
+```
+
 Never move or delete an existing `.claude/agents` or `.claude/skills` directory — if one
 is a real directory, report it in the summary and let the user decide.
 
@@ -286,6 +304,7 @@ After all steps complete, print a concise summary:
 ✓ .vscode/CLAUDE.md and deep-dive docs — [generated via /claude-docs / skipped (--skip-docs)]
 ✓ .gitignore updated (.file-stash added / neither tool needs an entry — .vscode already covers both)
 ✓ .claude/{agents,skills} — [linked to .vscode/.claude / already linked / left untouched (real directory)]
+✓ .omp/agents — [linked to .vscode/.claude/agents / already linked / left untouched (real directory)]
 
 Next steps:
   1. Restart Claude Code so the code-review-graph MCP loads the new database.
