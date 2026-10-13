@@ -3,7 +3,7 @@ name: personal:timesheet
 version: 2.0.0
 description: |
   Generates timesheet entries in the Clockify format for a day, a week, or a custom range.
-  Asks the user what to base the report on: the Claude Code conversations of the period,
+  Asks the user what to base the report on: the Claude Code and omp conversations of the period,
   the git changes of the current repo, queries/support work, or a combination.
   Breaks the work into tasks of max 3 hours each, grouped per day.
   Supports English and Spanish. Matches the vocabulary and tone of existing Clockify reports
@@ -29,13 +29,14 @@ Extract from the invocation whatever the user already said:
 - **Period**: `today` (default), `yesterday`, `week` (Monday to today), or an explicit date/range
 - **Sources**: where the hours come from (see below)
 - **Language**: `english` or `spanish` (default: `spanish`)
-- **Project / Client**: default to `$TIMESHEET_PROJECT` / `$TIMESHEET_CLIENT` (check with `echo`). If unset and not given by the user, ask once. Tags are handled by the user, never add them.
+
+Project and client are not part of the report: only the description and the hours matter.
 
 **Sources:**
 
 | Source | What it covers |
 |--------|----------------|
-| `conversations` | Claude Code sessions of the period in the current repo: what was asked, analyzed, tested, written |
+| `conversations` | Claude Code and omp sessions of the period in the current repo: what was asked, analyzed, tested, written |
 | `changes` | Commits of the period (and uncommitted changes) in the current repo |
 | `queries` | Conversations that were questions, support, or analysis with no code edits (answering a colleague, investigating behavior, reading docs) |
 
@@ -55,13 +56,14 @@ Resolve the dates first (`YYYY-MM-DD`, local time). Then run what the chosen sou
 python3 ~/.claude/skills/timesheet/scripts/sessions.py --from <start> --to <end>
 ```
 
-The script prints, per day and session: time window, active minutes (gaps over 10 minutes are not counted), prompt count, number of file edits, branch, session title, and the first prompts. Use `--all` for every repo, `--cwd <path>` for another one, `--prompts <n>` to see more prompts.
+The script reads both Claude Code (`cc`) and omp (`omp`) sessions and prints, per day and session: tool, time window, active minutes (gaps over 10 minutes are not counted), prompt count, number of file edits, branch (Claude Code only), session title, and the first prompts. Use `--all` for every repo, `--cwd <path>` for another one, `--prompts <n>` to see more prompts.
 
 - Sessions with edits are implementation, fixes, or documentation work.
 - Sessions with `edits=0` are analysis, review, testing, meetings prep, or queries.
 - A session that spans several topics becomes several tasks.
 - Prompts that are pasted logs or SQL output show the user was testing, not writing code: classify as testing.
 - Ignore sessions whose only purpose was to run this skill.
+- The same work can show up in a `cc` and an `omp` session; count it once.
 
 ### Changes
 
@@ -155,11 +157,11 @@ One block per day, in chronological order. Each block has a table and the CSV ro
 |   | **TOTAL**                 | HH:MM:SS | X.XX    |
 ```
 
-### CSV (Clockify format)
+### CSV
 
 ```
-"Proyecto","Cliente","Descripción","Hora (h)","Hora (decimal)"
-"[Project]","[Client]","Description here","02:00:00","2.00"
+"Descripción","Hora (h)","Hora (decimal)"
+"Description here","02:00:00","2.00"
 ```
 
 Format rules:
