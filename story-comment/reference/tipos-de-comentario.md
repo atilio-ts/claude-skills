@@ -54,6 +54,16 @@ va en una línea aparte, al final, solo si el usuario la pasó.
 > detalle de los registros de los servicios que envían mensajes al Core. Ya se
 > corrigió lo solicitado y se compartió la MR con el equipo. Quedo atento.
 
+## Reunión o coordinación con el cliente
+
+Qué se trató, qué se acordó y qué sigue. Sin nombres de personas ni de
+empresas: "con el cliente", "con el equipo de infraestructura".
+
+> El día de hoy se mantuvo una reunión con el cliente para aclarar el alcance
+> del cambio en la pantalla de lotes. Se acordó priorizar la corrección de los
+> filtros y dejar los ajustes visuales para una siguiente etapa. Quedo atento a
+> la confirmación del cliente para continuar.
+
 ## Bloqueo, decisión o cambio de prioridad
 
 Qué pasó, qué se decidió y qué queda en espera. Sin nombres de personas ni

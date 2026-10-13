@@ -64,6 +64,7 @@ Leé `reference/tipos-de-comentario.md` y elegí el tipo que corresponde:
 - Resultado de pruebas.
 - Avance de trabajo.
 - Code review o MR compartida.
+- Reunión o coordinación con el cliente.
 - Bloqueo, decisión o cambio de prioridad.
 - Cierre o espera de producción.
 
