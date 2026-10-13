@@ -1,90 +1,95 @@
 ---
 name: personal:timesheet
-version: 1.0.0
+version: 2.0.0
 description: |
-  Generates a timesheet report from the git changes in the current branch.
-  Analyzes commits and file diffs, breaks the work into tasks of max 3 hours each,
-  and outputs entries in the Clockify/timesheet format. Supports English and Spanish.
-  Matches the vocabulary and tone of existing timesheet reports (action noun + subject + detail).
+  Generates timesheet entries in the Clockify format for a day, a week, or a custom range.
+  Asks the user what to base the report on: the Claude Code conversations of the period,
+  the git changes of the current repo, queries/support work, or a combination.
+  Breaks the work into tasks of max 3 hours each, grouped per day.
+  Supports English and Spanish. Matches the vocabulary and tone of existing Clockify reports
+  (action noun + subject + detail).
 allowed-tools:
   - Bash
   - Read
   - Glob
   - Grep
+  - AskUserQuestion
 ---
 
 # Timesheet Report Generator
 
-You are generating a timesheet report based on git changes. Follow every step in order.
+You are generating timesheet entries for the hours the user can log in their time tracking system. Follow every step in order.
 
 ---
 
-## Step 0 — Parse arguments
+## Step 0 — Parse arguments and ask what is missing
 
-The user invokes this skill with arguments. Extract:
+Extract from the invocation whatever the user already said:
 
-- **Language**: `english` or `spanish` (default: `spanish` if not specified)
-- **Branch**: the branch to analyze (default: current branch)
-- **Project name**: the project/ticket name to use in the report (default: infer from branch name or ask)
-- **Client**: the client name (default: infer from context or ask)
+- **Period**: `today` (default), `yesterday`, `week` (Monday to today), or an explicit date/range
+- **Sources**: where the hours come from (see below)
+- **Language**: `english` or `spanish` (default: `spanish`)
+- **Project / Client**: default to `$TIMESHEET_PROJECT` / `$TIMESHEET_CLIENT` (check with `echo`). If unset and not given by the user, ask once. Tags are handled by the user, never add them.
 
-If the user provided a branch name other than the current one, use that branch.
-If project or client cannot be inferred, use `"[Project]"` and `"[Client]"` as placeholders and note it at the end.
+**Sources:**
 
----
+| Source | What it covers |
+|--------|----------------|
+| `conversations` | Claude Code sessions of the period in the current repo: what was asked, analyzed, tested, written |
+| `changes` | Commits of the period (and uncommitted changes) in the current repo |
+| `queries` | Conversations that were questions, support, or analysis with no code edits (answering a colleague, investigating behavior, reading docs) |
 
-## Step 1 — Gather git data
+If the user did not say which sources to use, ask with AskUserQuestion (multi-select, recommend `conversations` + `changes`). If the period is missing, assume today. Do not ask anything else.
 
-Run the following commands to understand what changed:
-
-```bash
-# Current branch name
-git branch --show-current
-```
-
-```bash
-# Commits in this branch vs main/develop/master (whichever exists)
-git log --oneline $(git merge-base HEAD $(git rev-parse --verify main 2>/dev/null || git rev-parse --verify develop 2>/dev/null || git rev-parse --verify master 2>/dev/null) 2>/dev/null || echo "HEAD~20")..HEAD
-```
-
-```bash
-# Full diff stat to understand files changed
-git diff --stat $(git merge-base HEAD $(git rev-parse --verify main 2>/dev/null || git rev-parse --verify develop 2>/dev/null || git rev-parse --verify master 2>/dev/null) 2>/dev/null || echo "HEAD~20")..HEAD
-```
-
-```bash
-# Commit messages with dates
-git log --pretty=format:"%ad | %s%n%b" --date=short $(git merge-base HEAD $(git rev-parse --verify main 2>/dev/null || git rev-parse --verify develop 2>/dev/null || git rev-parse --verify master 2>/dev/null) 2>/dev/null || echo "HEAD~20")..HEAD
-```
-
-If the user specified a target branch for comparison, replace `main`/`develop`/`master` with that branch.
+By default only sessions from the current repo count. If the user asks for all repos, pass `--all` to the script.
 
 ---
 
-## Step 2 — Analyze the changes
+## Step 1 — Gather evidence
 
-Based on the git data, identify the logical work units. Group related commits and file changes into cohesive tasks. Consider:
+Resolve the dates first (`YYYY-MM-DD`, local time). Then run what the chosen sources need.
 
-- What was created, modified, or fixed
-- Which modules, services, or components were touched
-- What the purpose of the changes was (feature, fix, refactor, config, test, etc.)
+### Conversations and queries
 
-Think about the actual development effort involved — analysis, implementation, testing, corrections, documentation.
+```bash
+python3 ~/.claude/skills/timesheet/scripts/sessions.py --from <start> --to <end>
+```
+
+The script prints, per day and session: time window, active minutes (gaps over 10 minutes are not counted), prompt count, number of file edits, branch, session title, and the first prompts. Use `--all` for every repo, `--cwd <path>` for another one, `--prompts <n>` to see more prompts.
+
+- Sessions with edits are implementation, fixes, or documentation work.
+- Sessions with `edits=0` are analysis, review, testing, meetings prep, or queries.
+- A session that spans several topics becomes several tasks.
+- Prompts that are pasted logs or SQL output show the user was testing, not writing code: classify as testing.
+- Ignore sessions whose only purpose was to run this skill.
+
+### Changes
+
+```bash
+git log --all --since="<start> 00:00" --until="<end> 23:59:59" --author="$(git config user.email)" --pretty=format:"%ad | %h | %s" --date=short
+git log --all --since="<start> 00:00" --until="<end> 23:59:59" --author="$(git config user.email)" --stat --pretty=format:"%n%ad %s" --date=short
+git status --short
+git diff --stat
+```
+
+Group by commit date. Uncommitted changes count toward today.
 
 ---
 
-## Step 3 — Break work into timesheet tasks
+## Step 2 — Build the tasks
+
+Identify logical work units per day, merging what the sources say about the same work (a session and its commits are one task, not two).
 
 **Rules:**
-- Each task must be **≤ 3 hours**. Split larger efforts into multiple entries.
-- Minimum task time: **15 minutes (0.25h)**
-- Be realistic: a small config change = 0.5–1h, a new service/feature = 2–3h (possibly split), fixes = 0.5–2h
-- Aim for tasks that reflect actual development phases: analysis, implementation, corrections, testing, deployment prep, documentation
-- Total hours should be reasonable for the scope of changes observed
+- Each task must be **≤ 3 hours**. Split larger efforts into several entries with different subjects (analysis, implementation, testing, corrections).
+- Minimum task time: **15 minutes (0.25h)**, in quarter-hour increments.
+- Derive hours from evidence: the active time of the session is the floor, then add the work that happened outside the conversation and is visible in the evidence (reading, running tests, meetings mentioned). Never inflate to reach a full workday.
+- A day's total must be explainable by its evidence. If a day has little evidence, report few hours.
+- Do not report the same work twice across days or sources.
 
 ---
 
-## Step 4 — Write task descriptions
+## Step 3 — Write task descriptions
 
 ### Description style (CRITICAL — match the examples exactly)
 
@@ -99,9 +104,11 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 | Analysis/research | `Analisis de [what] para [purpose]` | `Analisis de implementacion de sistema de alertas` |
 | Review/verification | `Revision de [what]` | `Revision de endpoints y configuracion del workflow` |
 | Fix/correction | `Correcciones en [what] para [purpose]` | `Correcciones en el builder de mensajes de alerta` |
-| Testing | `Pruebas de [what]` | `Pruebas de pipeline de despliegue` |
+| Testing | `Pruebas de [what]` | `Pruebas en ambiente QA de endpoints de la API` |
 | Documentation | `Documentacion de [what]` | `Documentacion de detalles de implementacion` |
 | Configuration | `Configuracion de [what] en [where]` | `Configuracion de variables de entorno en AWS` |
+| Meetings | `Reunion: [topic]` | `Reunion: Planning Integracion` |
+| Queries/support | `Analisis de [what] para responder consulta de [who/what]` | `Analisis de control de duplicados en archivos de liquidacion para responder consulta del equipo` |
 
 **English patterns (parallel structure):**
 
@@ -112,9 +119,11 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 | Analysis/research | `Analysis of [what] for [purpose]` | `Analysis of alerts system implementation` |
 | Review/verification | `Review of [what]` | `Review of endpoints and workflow configuration` |
 | Fix/correction | `Corrections to [what] for [purpose]` | `Corrections to alert message builder` |
-| Testing | `Testing of [what]` | `Testing of deployment pipeline` |
+| Testing | `Testing of [what]` | `QA environment testing of API endpoints` |
 | Documentation | `Documentation of [what]` | `Documentation of implementation details` |
 | Configuration | `Configuration of [what] in [where]` | `Configuration of environment variables in AWS` |
+| Meetings | `Meeting: [topic]` | `Meeting: Integration planning` |
+| Queries/support | `Analysis of [what] to answer [who/what] query` | `Analysis of duplicate control in settlement files to answer team query` |
 
 **Do NOT:**
 - Use vague descriptions like "Working on feature X" or "Code changes"
@@ -122,50 +131,50 @@ The tone is **professional and direct**. Descriptions are **noun phrases** that 
 - Add punctuation at the end of the description
 - Use deep technical jargon (class names, method signatures, stack traces)
 - Use markdown, asterisks, or formatting inside the description
+- Copy prompts literally or mention conversations, sessions, or tools
 
 **DO:**
-- Name the module, service, or component (e.g., "modulo de pagos", "backoffice", "workflow de pagos")
-- Be specific about what changed (config, endpoint, service, job, builder, validator, etc.)
-- Match the level of specificity in the examples above
+- Name the module, service, or component (e.g., "modulo de pagos", "backoffice", "pagos recurrentes")
+- Name the environment when testing (QA, homologacion, local)
+- Be specific about what changed or was verified
 
 ---
 
-## Step 5 — Output the report
+## Step 4 — Output the report
 
-Output a table followed by the CSV data.
+One block per day, in chronological order. Each block has a table and the CSV rows. For a multi-day period, finish with a weekly total.
 
-### Table (human-readable)
+### Table
 
 ```
-| # | Descripción / Description | Tiempo (h) | Decimal |
-|---|--------------------------|:----------:|:-------:|
-| 1 | ...                      | 02:00:00   | 2.00    |
-...
-|   | **TOTAL**                | HH:MM:SS   | X.XX    |
+### YYYY-MM-DD (weekday)
+
+| # | Descripción / Description | Hora (h) | Decimal |
+|---|---------------------------|:--------:|:-------:|
+| 1 | ...                       | 02:00:00 | 2.00    |
+|   | **TOTAL**                 | HH:MM:SS | X.XX    |
 ```
 
 ### CSV (Clockify format)
 
 ```
-"Proyecto","Cliente","Descripción","Tiempo (h)","Tiempo (decimal)"
+"Proyecto","Cliente","Descripción","Hora (h)","Hora (decimal)"
 "[Project]","[Client]","Description here","02:00:00","2.00"
-...
 ```
 
 Format rules:
-- Time: `HH:MM:SS` (e.g., `01:30:00`, `02:45:00`, `00:30:00`)
-- Decimal: two decimal places (e.g., `1.50`, `2.75`, `0.50`)
-- Quarter-hour increments: 0.25, 0.50, 0.75, 1.00, 1.25, ... 3.00
+- Time: `HH:MM:SS` (e.g., `01:30:00`)
+- Decimal: two decimal places (e.g., `1.50`)
 - All values quoted in CSV
+- Keep accents in the descriptions (UTF-8) when writing in Spanish
 
 ---
 
-## Step 6 — Summary note
+## Step 5 — Summary note
 
-After the CSV, add a brief note (2–3 lines) stating:
-- Total hours
-- Number of tasks
-- Which branch/commits were analyzed
-- Any placeholders the user needs to fill in (project name, client, etc.)
+After the last block, add 2–3 lines stating:
+- Total hours and number of tasks, per day for multi-day periods
+- Sources and period used
+- Days with little evidence or sessions that were skipped, so the user can adjust the hours
 
-Do not mention AI or tools in this note.
+Hours are an estimate from activity; the user adjusts before logging them. Do not mention AI or tools in the note.
