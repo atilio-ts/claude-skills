@@ -90,6 +90,34 @@ Append `!` and add a `BREAKING CHANGE:` footer.
 - No wrapped continuations — split long ideas into separate bullets
 - Omit body if the first line is self-explanatory
 
+### Wording — plain and short
+
+Write like a native English speaker in a hurry: verb + what changed, nothing more.
+
+- Prefer the shortest phrasing that is still clear; drop qualifiers and context
+- Use common verbs: add, remove, rename, move, replace, fix, update
+- Avoid explanations of why, layer jargon, and slash-joined alternatives
+- Avoid idioms and figurative verbs (slim down, clean up, revamp, streamline)
+- Keep the scope out of the subject unless the diff spans unrelated modules
+
+Too complex:
+
+```
+- Use RequestDTO/ResponseDTO suffixes for recipient payload classes
+- Return plain DTOs from mapper; controller builds the data envelope
+```
+
+Good:
+
+```
+refactor: rename recipient DTOs and models
+
+- Add DTO to request and response classes
+- Add Model to recipient models
+- Replace data wrappers with DataResponseDTO
+- Remove unused Empty class
+```
+
 ### NEVER include
 
 - "Co-Authored-By" or any AI attribution
