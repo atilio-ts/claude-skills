@@ -3,9 +3,8 @@ name: personal:custom-init
 version: 2.3.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash
-  and code-review-graph are configured as global MCPs and online, writes a
-  .code-review-graphignore tuned to the project type, registers markdown as a parsed
-  language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
+  and code-review-graph are configured as global MCPs and online, registers markdown
+  as a parsed language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
   off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation set, and
   adds the tool output folders to .gitignore, and links .claude/{agents,skills} to
   .vscode/.claude.
@@ -41,16 +40,15 @@ generation itself is not this skill's job — see Step 6.
 
 1. **Verify global MCPs** — checks that filestash and code-review-graph are
    registered globally; prints fix commands for any that are missing.
-2. **Write `.code-review-graphignore`** — patterns tuned to the detected project type.
-3. **Write `.vscode/code-review-graph/languages.toml`** — registers markdown so
+2. **Write `.vscode/code-review-graph/languages.toml`** — registers markdown so
    `.vscode/*.md` docs become graph nodes.
-4. **Build knowledge graph** — runs `code-review-graph build --data-dir
+3. **Build knowledge graph** — runs `code-review-graph build --data-dir
    .vscode/code-review-graph`.
-5. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and its deep-dive docs
+4. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and its deep-dive docs
    from the project metadata gathered in Step 1.
-6. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
+5. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
    otherwise neither tool needs its own entry).
-7. **Link `.claude/{agents,skills}`** — symlinks them to `.vscode/.claude/` and adds
+6. **Link `.claude/{agents,skills}`** — symlinks them to `.vscode/.claude/` and adds
    `.claude/` to `.git/info/exclude`; also links `.omp/agents` and excludes `.omp/`.
 
 ---
@@ -119,13 +117,6 @@ code-review-graph).
 
 ---
 
-## Step 3 — Write `.code-review-graphignore`
-
-Read `reference/ignore-patterns.md` and apply it, using the project type(s) detected in
-Step 1.
-
----
-
 ## Step 3b — Write `.vscode/code-review-graph/languages.toml`
 
 Read `reference/languages-config.md` and apply it. This registers markdown as a parsed
@@ -134,8 +125,6 @@ language so `.vscode/*.md` project docs become graph nodes, not just visible fil
 ---
 
 ## Step 4 — Build the knowledge graph (skip if `--skip-graph`)
-
-> code-review-graph automatically respects the `.code-review-graphignore` written in Step 3.
 
 ### 4a — Ensure code-review-graph is installed
 
@@ -297,7 +286,6 @@ After all steps complete, print a concise summary:
 ```
 ✓ filestash MCP — [configured globally / MISSING — see instructions above]
 ✓ code-review-graph global MCP — [configured globally / MISSING — see instructions above]
-✓ .code-review-graphignore written — [N patterns, Java/Node/Python/Go/Rust block]
 ✓ .vscode/code-review-graph/languages.toml written — [markdown registered / already existed]
 ✓ code-review-graph built — .vscode/code-review-graph/ ([N nodes, M edges] from status output)
 ✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
@@ -333,9 +321,8 @@ Next steps:
   machine has a global fallback** (`~/.claude/code-review-graph/languages.toml`, applied
   by a patch to the pipx install — see `dev-setup/code-review-graph/patch_global_languages.py`).
   The repo-local file is what makes the config explicit and portable to a machine without
-  that patch — but note it is NOT committed (it lives under gitignored `.vscode/`), unlike
-  `.code-review-graphignore`. Don't claim otherwise when printing the final summary.
-- **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
+  that patch — but note it is NOT committed (it lives under gitignored `.vscode/`). Don't
+  claim otherwise when printing the final summary.- **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
   global binary at `$HOME/.local/bin/code-review-graph` handles all projects via
   `$PWD` resolution.
 - **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
