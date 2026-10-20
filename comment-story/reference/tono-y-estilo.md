@@ -49,8 +49,15 @@ técnico.
 - Evitar jerga de desarrollo ("refactor", "deadlock", "endpoint", "query"):
   preferir "reorganización", "bloqueo entre procesos", "servicio", "consulta".
 - Sin nombres de personas, de comercios ni de clientes, y sin identificadores
-  de lotes o de tareas. Los links no van, salvo la MR cuando el usuario la
-  pasa: en ese caso va en una línea aparte al final.
+  de lotes o de tareas, salvo que el usuario pida nombrar a alguien (por
+  ejemplo, quien debe revisar): en ese caso se usa el nombre tal como lo dio.
+  Los links no van, salvo la MR cuando el usuario la pasa: en ese caso va en
+  una línea aparte al final.
+- Se pueden nombrar las herramientas de calidad del equipo (Sonar, la code
+  review) y las capas de la arquitectura (aplicación, infraestructura, acceso)
+  por su responsabilidad, sin nombrar clases ni módulos de código.
+- Si el usuario da una frase o un ejemplo del texto que quiere, se conserva su
+  redacción y se completa con el mismo tono; no se reescribe desde cero.
 
 ## Qué no incluir
 

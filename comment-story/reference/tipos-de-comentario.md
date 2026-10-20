@@ -45,6 +45,16 @@ párrafos. La causa se cuenta por su efecto, y los cambios por lo que logran.
 > registrado para su seguimiento, y se agregaron pruebas automáticas que
 > reproducen el caso.
 
+## Revisión con herramienta de calidad
+
+Qué se revisó, qué tipos de correcciones se aplicaron y quién debe comentar.
+Los tipos de corrección se enumeran dentro de la oración, sin detalle técnico.
+
+> El día de ayer se realizó una revisión con Sonar de la implementación
+> inicial. Se aplicaron correcciones en el manejo de fechas, el recorrido de
+> listas y la definición de excepciones. Quedo atento a los comentarios del
+> equipo de revisión.
+
 ## Code review o MR compartida
 
 Qué se pidió en la revisión, qué se corrigió y que se compartió la MR. La MR
@@ -85,6 +95,22 @@ seguimiento.
 > fueron aprobadas, y luego se aprobó el pase a QA. Como es incierto cuándo se
 > realizará el pase a producción, se da la tarea por terminada y se abrirá otra
 > para ese seguimiento.
+
+## Avance de varios días
+
+Un texto por día, cada uno con su apertura ("El día de ayer…", "El día de
+hoy…"). El día en curso retoma con "se continuó con…" lo que ya se había
+iniciado, y la revisión de código va en un segundo párrafo.
+
+> El día de hoy se continuó con la separación y delimitación de las capas de
+> aplicación e infraestructura, asegurando que cada una se limite a sus
+> responsabilidades. Se unificó el registro de las solicitudes en un único
+> componente y se centralizaron los nombres de los datos de cabecera.
+>
+> También se realizó una revisión de código de la capa de acceso, se
+> corrigieron los puntos observados y se verificó que el proyecto compile y
+> que las pruebas automáticas pasen. Quedo atento a los comentarios de la code
+> review.
 
 ## Combinar tipos
 

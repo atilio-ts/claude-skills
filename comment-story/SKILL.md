@@ -1,5 +1,5 @@
 ---
-name: personal:story-comment
+name: personal:comment-story
 version: 1.0.0
 description: |
   Redacta comentarios de seguimiento para historias, bugs y tareas de Jira a
@@ -7,7 +7,7 @@ description: |
   de pruebas, avances, code review, bloqueos, decisiones y cierres. Entrega
   párrafos breves en lenguaje llano, sin viñetas ni detalle técnico de código,
   listos para pegar en la tarea.
-trigger: /story-comment
+trigger: /comment-story
 allowed-tools:
   - Read
   - Glob
@@ -37,7 +37,10 @@ usuario lo copie en la tarea.
 ## Paso 1 — Recopilar la información
 
 Acepta cualquier formato: notas sueltas, un resumen de lo trabajado, la salida
-de una sesión de pruebas o un reporte propio.
+de una sesión de pruebas o un reporte propio. Si el usuario pide basarse en
+el trabajo de los últimos días sin contarlo, tomá la evidencia de las
+conversaciones del período y de los commits del repo actual, igual que
+`/timesheet`.
 
 Necesitás saber:
 
@@ -45,6 +48,7 @@ Necesitás saber:
 - En qué estado quedó (en revisión, en QA, esperando producción, bloqueado).
 - Si hay algo pendiente o alguien de quien se espera una respuesta.
 - Si hay una MR para compartir.
+- Si el comentario cubre varios días: se entrega un texto por día.
 
 Si el usuario te pasa la clave de la tarea y el MCP de Jira está disponible,
 leé la descripción y los últimos comentarios con `getJiraIssue` (pidiendo
@@ -62,7 +66,8 @@ Leé `reference/tipos-de-comentario.md` y elegí el tipo que corresponde:
 
 - Pase de ambiente o inicio de pruebas.
 - Resultado de pruebas.
-- Avance de trabajo.
+- Avance de trabajo, de uno o de varios días.
+- Revisión con herramienta de calidad.
 - Code review o MR compartida.
 - Reunión o coordinación con el cliente.
 - Bloqueo, decisión o cambio de prioridad.
