@@ -6,9 +6,9 @@ project docs are never turned into graph nodes even when they're visible to the 
 collector. Read this from `SKILL.md` Step 3b.
 
 **This file is NOT committed.** It lives under
-`.vscode/`, which is gitignored wholesale in these repos — so it's machine-local, same as
-`.vscode/CLAUDE.md` and the rest of the project docs. That's the whole point of putting
-it there: no `.code-review-graph` line needed in `.gitignore`, at the cost of this config
+`.vscode/`, which `.git/info/exclude` hides from git (`SKILL.md` Step 7) — so it's
+machine-local, same as `.vscode/CLAUDE.md` and `.vscode/docs/`. That's the whole point of
+putting it there: nothing about the tool shows up in the repo, at the cost of this config
 not syncing to teammates via git. `/custom-init` recreates it on any machine that runs it;
 the global fallback (below) also covers machines that haven't run `/custom-init` for this
 project at all.

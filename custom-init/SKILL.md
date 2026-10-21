@@ -1,13 +1,15 @@
 ---
 name: personal:custom-init
-version: 2.3.0
+version: 3.0.0
 description: |
   Bootstraps a new project with the full productivity setup: verifies filestash
   and code-review-graph are configured as global MCPs and online, registers markdown
-  as a parsed language so .vscode/ docs get indexed, builds the knowledge graph for the repo, hands
-  off to /claude-docs to generate the initial .vscode/CLAUDE.md documentation set, and
-  adds the tool output folders to .gitignore, and links .claude/{agents,skills} to
-  .vscode/.claude.
+  as a parsed language so .vscode/ docs get indexed, builds the knowledge graph for the repo,
+  recommends stack-specific plugins, MCPs and skills (prints commands, installs nothing),
+  hands off to /claude-docs to generate .vscode/CLAUDE.md and .vscode/docs/, hides every
+  tooling path from git through .git/info/exclude (never .gitignore), and links .claude/
+  and .omp/ to .vscode/ so Claude Code and omp share one config. Re-running it on a repo
+  set up by an older version repairs the legacy setup.
 trigger: /custom-init
 allowed-tools:
   - Read
@@ -41,15 +43,21 @@ generation itself is not this skill's job — see Step 6.
 1. **Verify global MCPs** — checks that filestash and code-review-graph are
    registered globally; prints fix commands for any that are missing.
 2. **Write `.vscode/code-review-graph/languages.toml`** — registers markdown so
-   `.vscode/*.md` docs become graph nodes.
+   the `.vscode/` docs become graph nodes.
 3. **Build knowledge graph** — runs `code-review-graph build --data-dir
    .vscode/code-review-graph`.
-4. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and its deep-dive docs
+4. **Recommend stack tooling** — plugins, project MCPs and skills that fit the detected
+   stack, as commands for the user to run.
+5. **Hand off to `/claude-docs`** — generates `.vscode/CLAUDE.md` and `.vscode/docs/`
    from the project metadata gathered in Step 1.
-5. **Update `.gitignore`** — appends `.file-stash` (if `.vscode` isn't already ignored;
-   otherwise neither tool needs its own entry).
-6. **Link `.claude/{agents,skills}`** — symlinks them to `.vscode/.claude/` and adds
-   `.claude/` to `.git/info/exclude`; also links `.omp/agents` and excludes `.omp/`.
+6. **Hide tooling from git** — adds every tooling path to `.git/info/exclude`. Never
+   adds to `.gitignore`, which is committed and visible to the team.
+7. **Repair a legacy setup** — removes what older versions left behind (`.gitignore`
+   lines, root ignore files, `.mcp.json`, stale tool data), with confirmation.
+8. **Link `.claude/` and `.omp/`** — `.claude/CLAUDE.md`, `.claude/agents` and
+   `.claude/skills` point into `.vscode/`; `.omp/agents` too, since omp reads everything
+   else from `.claude/`.
+9. **Check nothing leaks** — `git status` must show no tooling path.
 
 ---
 
@@ -120,7 +128,8 @@ code-review-graph).
 ## Step 3b — Write `.vscode/code-review-graph/languages.toml`
 
 Read `reference/languages-config.md` and apply it. This registers markdown as a parsed
-language so `.vscode/*.md` project docs become graph nodes, not just visible files.
+language so `.vscode/CLAUDE.md` and `.vscode/docs/` become graph nodes, not just visible
+files.
 
 ---
 
@@ -166,19 +175,19 @@ code-review-graph build --repo <path> --data-dir <path>/.vscode/code-review-grap
 
 This produces `.vscode/code-review-graph/` (SQLite database, alongside the
 `languages.toml` from Step 3b) instead of a top-level `.code-review-graph/` — so nothing
-code-review-graph-related is ever created outside `.vscode/`, and no separate
-`.gitignore` entry is needed since `.vscode` is already ignored wholesale.
+code-review-graph-related is ever created outside `.vscode/`, which Step 7 hides from
+git.
 
 After build completes, run `code-review-graph status` and print the node/edge counts.
 
 ---
 
-## Step 5 — No project `.mcp.json` needed for the global two
+## Step 5 — Recommend stack tooling
 
-filestash and code-review-graph are both global — already covered in
-`reference/mcp-verification.md`. Only create `.mcp.json` if this specific project needs
-MCPs beyond those two; if so, add it to `.gitignore` in Step 7. If no project-specific
-MCPs are needed, skip `.mcp.json` and any `.claude/` folder entirely.
+Read `reference/tooling-catalog.md` and apply it to the stack detected in Step 1. Print
+the recommendations with their commands; don't install, enable, or write any config.
+filestash and code-review-graph are global (see `reference/mcp-verification.md`) and
+never go in a project `.mcp.json`.
 
 ---
 
@@ -188,111 +197,121 @@ Documentation generation is not implemented in this file — it lives in the `cl
 skill so there's exactly one place that owns doc-generation logic, used both for initial
 bootstrap and for every later update.
 
-Read and apply `../claude-docs/SKILL.md` in **create mode**, passing it the project
+Read and apply `../claude-docs/SKILL.md`, letting it auto-detect the mode: create mode on
+a fresh repo, audit mode when `.vscode/CLAUDE.md` already exists — which is also what
+migrates an old `.vscode/<module>-CLAUDE.md` layout into `.vscode/docs/`. Pass it the project
 metadata you already gathered in Step 1 (module list, build commands, README summary,
-detected language/framework) so it doesn't re-detect what you already know.
+detected language/framework) so it doesn't re-detect what you already know. It writes
+`.vscode/CLAUDE.md` and `.vscode/docs/`, nothing else.
 
 If `--skip-docs` was passed, skip this step entirely and note in the final summary that
 documentation was not generated.
 
 ---
 
-## Step 7 — Update `.gitignore`
+## Step 7 — Hide tooling from git
 
-Read the current `.gitignore` (or create it if missing). On this machine both tools write
-into `.vscode/` — file-stash via the global `FILESTASH_DIR=.vscode/file-stash` env var in
-`~/.claude.json`'s MCP registration, code-review-graph via `--data-dir
-.vscode/code-review-graph` in Step 4b — so if `.vscode` is already ignored, neither needs
-its own line:
+Nothing AI- or agent-related may show up in the committed repo — not as files, and not as
+`.gitignore` entries either, since `.gitignore` is itself committed. Every path goes into
+`.git/info/exclude`, which is local to this clone and never committed. Never write to
+`.gitignore`.
+
+If the repo already tracks files under `.vscode/` (a shared `settings.json`, launch
+configs), excluding the whole folder would hide the team's future files too — exclude
+only the paths this setup owns instead:
 
 ```bash
-GITIGNORE=".gitignore"
-
-if grep -qxF ".vscode" "$GITIGNORE" 2>/dev/null; then
-    echo ".vscode already ignored — file-stash and code-review-graph need no separate entries"
-else
-    MISSING=""
-    # NOTE: the real default directory is .file-stash (with a hyphen), not .filestash —
-    # a mismatch existed here previously.
-    grep -qxF ".file-stash" "$GITIGNORE" 2>/dev/null || MISSING="$MISSING\n.file-stash"
-    if [ -n "$MISSING" ]; then
-        printf "$MISSING\n" >> "$GITIGNORE"
-        echo "Updated .gitignore (.vscode not ignored here — added .file-stash explicitly; add .code-review-graph too if not using --data-dir)"
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    EXCLUDE=$(git rev-parse --git-path info/exclude)
+    mkdir -p "$(dirname "$EXCLUDE")"
+    if [ -n "$(git ls-files .vscode)" ]; then
+        VSCODE=".vscode/CLAUDE.md .vscode/docs/ .vscode/.claude/ .vscode/.mcp.json .vscode/code-review-graph/ .vscode/file-stash/ .vscode/temporary/"
     else
-        echo ".gitignore already up to date"
+        VSCODE=".vscode/"
     fi
+    for p in $VSCODE .claude/ .omp/ .mcp.json .file-stash/ .filestash/ .code-review-graph/ .code-review-graphignore .cachebro/ graphify-out/ .graphifyignore; do
+        rg -qxF "$p" "$EXCLUDE" 2>/dev/null || echo "$p" >> "$EXCLUDE"
+    done
 fi
 ```
 
-> If `~/.claude.json` doesn't have `FILESTASH_DIR` set yet, file-stash still writes to
-> `.file-stash` at the repo root regardless of what this step does — that's a global MCP
-> config change outside this skill's scope, see DEV_SETUP.md's file-stash section.
+If a tooling path is already tracked, exclusion has no effect on it — Step 7a handles
+that.
 
-> Only add `.mcp.json` to `.gitignore` if a project-specific `.mcp.json` was created
-> in Step 5. If no project-specific MCPs were needed, skip this entry.
+> If `~/.claude.json` doesn't have `FILESTASH_DIR` set yet, file-stash writes to
+> `.file-stash` at the repo root — the exclude above still hides it, but the global MCP
+> fix is outside this skill's scope, see DEV_SETUP.md's file-stash section.
 
 ---
 
-## Step 7b — Link `.claude/{agents,skills}` to `.vscode/.claude`
+## Step 7a — Repair a legacy setup
 
-Project agents and skills live in `.vscode/.claude/`; the repo-root `.claude/agents` and
-`.claude/skills` are symlinks to them so Claude Code can find them, and `.claude/` is
-excluded locally so nothing shows up in git.
-
-```bash
-mkdir -p .vscode/.claude/agents .vscode/.claude/skills .claude
-for d in agents skills; do
-    if [ -L ".claude/$d" ]; then
-        echo ".claude/$d already linked"
-    elif [ -e ".claude/$d" ]; then
-        echo "WARNING: .claude/$d exists and is not a symlink — left untouched"
-    else
-        ln -s "../.vscode/.claude/$d" ".claude/$d"
-    fi
-done
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    EXCLUDE=$(git rev-parse --git-path info/exclude)
-    grep -qxF ".claude/" "$EXCLUDE" 2>/dev/null || echo ".claude/" >> "$EXCLUDE"
-fi
-```
-
-oh-my-pi ignores `.claude/agents`, so project agents also need `.omp/agents` (skills are
-already read from `.claude/skills`):
-
-```bash
-mkdir -p .omp
-if [ -L .omp/agents ]; then
-    echo ".omp/agents already linked"
-elif [ -e .omp/agents ]; then
-    echo "WARNING: .omp/agents exists and is not a symlink — left untouched"
-else
-    ln -s ../.vscode/.claude/agents .omp/agents
-fi
-if git rev-parse --git-dir >/dev/null 2>&1; then
-    EXCLUDE=$(git rev-parse --git-path info/exclude)
-    grep -qxF ".omp/" "$EXCLUDE" 2>/dev/null || echo ".omp/" >> "$EXCLUDE"
-fi
-```
-
-Never move or delete an existing `.claude/agents` or `.claude/skills` directory — if one
-is a real directory, report it in the summary and let the user decide.
+Read `reference/legacy-repair.md` and apply it. On a fresh repo it finds nothing; on a
+repo bootstrapped by an older version it cleans up the `.gitignore` lines, tracked or
+leftover root files, and stale tool data those versions left, each with confirmation.
 
 ---
 
-## Step 8 — Print summary
+## Step 7b — Link `.claude/` and `.omp/` to `.vscode/`
 
-After all steps complete, print a concise summary:
+Everything real lives in `.vscode/`; the root `.claude/` and `.omp/` folders hold only
+symlinks, already hidden by Step 7.
+
+- `.claude/CLAUDE.md` makes Claude Code load the project instructions on its own, and
+  omp loads the same file through its `.claude/` discovery.
+- `.claude/agents` and `.claude/skills` — omp reads skills from `.claude/skills` too.
+- `.omp/agents` — omp doesn't read `.claude/agents`, so agents need their own link.
+  No `.vscode/.omp/` copy: omp already takes the rest of its project config from
+  `.claude/`.
+
+```bash
+mkdir -p .vscode/.claude/agents .vscode/.claude/skills .vscode/docs .claude .omp
+link() {
+    if [ -L "$2" ]; then
+        echo "$2 already linked"
+    elif [ -e "$2" ]; then
+        echo "WARNING: $2 exists and is not a symlink — left untouched"
+    else
+        ln -s "$1" "$2"
+    fi
+}
+link ../.vscode/.claude/agents .claude/agents
+link ../.vscode/.claude/skills .claude/skills
+link ../.vscode/.claude/agents .omp/agents
+[ -f .vscode/CLAUDE.md ] && link ../.vscode/CLAUDE.md .claude/CLAUDE.md
+```
+
+Run the `.claude/CLAUDE.md` link after Step 6, once `/claude-docs` has written the file.
+Never move or delete an existing `.claude/agents`, `.claude/skills`, `.claude/CLAUDE.md`
+or `.omp/agents` — if one is a real file or directory, report it in the summary and let
+the user decide. Never create a root `CLAUDE.md` or `AGENTS.md`.
+
+---
+
+## Step 8 — Check nothing leaks, then print summary
+
+```bash
+git status --porcelain --ignored=no | rg '(^|/)(\.claude|\.omp|\.mcp\.json|\.file-?stash|\.code-review-graph|\.cachebro|graphify-out|\.graphifyignore|\.vscode/(CLAUDE\.md|docs|\.claude))' \
+    && echo "LEAK" || echo "clean"
+```
+
+Any `LEAK` line is a failure: name the path in the summary and fix the exclude before
+finishing.
+
+Print a concise summary:
 
 ```
 ✓ filestash MCP — [configured globally / MISSING — see instructions above]
 ✓ code-review-graph global MCP — [configured globally / MISSING — see instructions above]
 ✓ .vscode/code-review-graph/languages.toml written — [markdown registered / already existed]
 ✓ code-review-graph built — .vscode/code-review-graph/ ([N nodes, M edges] from status output)
-✓ .mcp.json — [written (project-scoped MCPs only) / skipped (none needed)]
-✓ .vscode/CLAUDE.md and deep-dive docs — [generated via /claude-docs / skipped (--skip-docs)]
-✓ .gitignore updated (.file-stash added / neither tool needs an entry — .vscode already covers both)
-✓ .claude/{agents,skills} — [linked to .vscode/.claude / already linked / left untouched (real directory)]
-✓ .omp/agents — [linked to .vscode/.claude/agents / already linked / left untouched (real directory)]
+✓ Stack tooling — [N recommendations printed above / nothing to recommend]
+✓ .vscode/CLAUDE.md and .vscode/docs/ — [generated via /claude-docs / skipped (--skip-docs)]
+✓ Legacy repair — [nothing found / repaired: <items> / kept by choice: <items>]
+✓ .git/info/exclude — [N paths added / already up to date] ([.vscode/ whole / owned subpaths only, .vscode is tracked])
+✓ .claude/{CLAUDE.md,agents,skills} — [linked / already linked / left untouched (real file or directory)]
+✓ .omp/agents — [linked / already linked / left untouched (real directory)]
+✓ git status — [clean / LEAK: <paths>]
 
 Next steps:
   1. Restart Claude Code so the code-review-graph MCP loads the new database.
@@ -309,11 +328,12 @@ Next steps:
   print instructions for the user.
 - **Never create `.claude/settings.local.json` in the project** — project settings live in
   `.vscode/.claude/`.
+- **Never write to `.gitignore`** — every tooling path goes to `.git/info/exclude` (Step 7).
 - **Never overwrite an existing `.vscode/CLAUDE.md`** without asking the user first — and
   in practice this shouldn't come up, since Step 6 delegates to `/claude-docs`, which
   already detects existing docs and switches to audit-and-update mode instead of
   overwriting.
-- **`.vscode/` is typically gitignored** — treat anything written there as uncommitted
+- **`.vscode/` is excluded from git** — treat anything written there as uncommitted
   work with no `git checkout` safety net. Never delete a file in there without explicit
   user confirmation (this matters most in `/claude-docs`'s audit mode, not this skill,
   but it's worth remembering while writing anything under `.vscode/`).
@@ -321,10 +341,11 @@ Next steps:
   machine has a global fallback** (`~/.claude/code-review-graph/languages.toml`, applied
   by a patch to the pipx install — see `dev-setup/code-review-graph/patch_global_languages.py`).
   The repo-local file is what makes the config explicit and portable to a machine without
-  that patch — but note it is NOT committed (it lives under gitignored `.vscode/`). Don't
-  claim otherwise when printing the final summary.- **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
+  that patch — but note it is NOT committed (it lives under the excluded `.vscode/`). Don't
+  claim otherwise when printing the final summary.
+- **code-review-graph is global** — never write code-review-graph into `.mcp.json`. The
   global binary at `$HOME/.local/bin/code-review-graph` handles all projects via
   `$PWD` resolution.
-- **`.mcp.json` only for project-scoped MCPs** — only create it if the project needs
-  MCPs beyond the global ones (filestash, code-review-graph). Add it to
-  `.gitignore`.
+- **`.mcp.json` only for project-scoped MCPs** — recommended in Step 5, never written by
+  this skill. When the user adds one, it lives at `.vscode/.mcp.json` with a root
+  `.mcp.json` symlink, both hidden by Step 7.

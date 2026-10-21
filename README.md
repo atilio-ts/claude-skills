@@ -6,9 +6,9 @@ Personal collection of skills for [Claude Code](https://claude.ai/code).
 
 | Skill | Description |
 |-------|-------------|
-| [`/claude-docs`](./claude-docs/SKILL.md) | Creates or updates a project's `.vscode/CLAUDE.md` documentation set: maps undocumented components, audits existing docs against current code, splits deep-dives into their own files, and flags redundant/stale docs for confirmed deletion. |
+| [`/claude-docs`](./claude-docs/SKILL.md) | Creates or updates a project's documentation: a thin `.vscode/CLAUDE.md` index plus deep-dives in `.vscode/docs/`. Maps undocumented components, drafts project conventions from the code and confirms the rest with the user, audits existing docs against current code, migrates the old `.vscode/<module>-CLAUDE.md` layout, and flags redundant/stale docs for confirmed deletion. |
 | [`/commit-message`](./commit-message/SKILL.md) | Generates a conventional commit message by reading the staged diff and project history. |
-| [`/custom-init`](./custom-init/SKILL.md) | Bootstraps a new project with the full productivity setup: verifies global MCPs, builds the knowledge graph, hands off to `/claude-docs` for the initial documentation set, and updates `.gitignore`. |
+| [`/custom-init`](./custom-init/SKILL.md) | Bootstraps a new project with the full productivity setup: verifies global MCPs, builds the knowledge graph, recommends stack-specific plugins/MCPs/skills, hands off to `/claude-docs`, links `.claude/` and `.omp/` to `.vscode/`, and hides every tooling path through `.git/info/exclude` (never `.gitignore`). Re-running it repairs repos set up by older versions. |
 | [`/estimate`](./estimate/SKILL.md) | Produces a technical analysis and effort estimation document for a feature or change, including phases, impact map, and justified hours. |
 | [`/new-skill`](./new-skill/SKILL.md) | Creates a new skill for this repo, or updates an existing one, following the conventions actually used across the current skill set (frontmatter, structure, README upkeep, local install). |
 | [`/readme`](./readme-generator/SKILL.md) | Generates or updates a professional README by analyzing the project's code, structure, and dependencies. Supports multiple output languages. |
