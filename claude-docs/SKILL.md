@@ -1,12 +1,13 @@
 ---
 name: personal:claude-docs
-version: 1.1.0
+version: 2.0.0
 description: |
-  Creates or updates a project's Claude Code documentation (.vscode/CLAUDE.md and its
-  deep-dive docs) so it stays a reliable map of the codebase over time. Detects whether
-  docs already exist and switches between two modes: generate from scratch (new project,
-  or right after /custom-init), or audit-and-update (verify every existing claim against
-  current code, fix what's wrong, fill gaps, flag redundant/stale files for deletion).
+  Creates or updates a project's Claude Code documentation (.vscode/CLAUDE.md as a thin
+  index, deep-dive docs under .vscode/docs/) so it stays a reliable map of the codebase
+  over time. Detects whether docs already exist and switches between two modes: generate
+  from scratch (new project, or right after /custom-init), or audit-and-update (verify
+  every existing claim against current code, fix what's wrong, fill gaps, migrate the old
+  .vscode/<module>-CLAUDE.md layout into docs/, flag redundant/stale files for deletion).
   Never invents facts — every claim is grounded in the actual source at write time.
 trigger: /claude-docs
 allowed-tools:
@@ -22,7 +23,7 @@ allowed-tools:
 
 # /claude-docs
 
-Keep a project's Claude Code documentation (`.vscode/CLAUDE.md` + its deep-dive docs)
+Keep a project's Claude Code documentation (`.vscode/CLAUDE.md` + `.vscode/docs/`)
 accurate and easy to navigate — as a one-time generation job right after bootstrap, and as
 a recurring maintenance job as the codebase evolves.
 
@@ -55,6 +56,11 @@ this summary alone.
 - `--module <name>` scopes either mode to one module/subsystem's docs instead of the
   whole tree.
 
+In audit mode, also check for the old layout (`.vscode/<module>-CLAUDE.md` files or
+`.vscode/<module>/` folders outside `docs/`) — see "Migrating the old layout" in
+`reference/structure-and-splitting.md`. Propose the migration before auditing, so the
+audit runs over the final paths.
+
 ---
 
 ## Step 2 — Map what should be documented
@@ -73,14 +79,17 @@ directory-listing pass misses subsystems that only show up in configuration.
 
 Using the component map from Step 2:
 
-1. Read `reference/structure-and-splitting.md` for how to decide file layout — when a
-   single `.vscode/CLAUDE.md` suffices vs. when a module needs its own deep-dive folder,
-   and the "Component Map" table pattern that indexes them.
-2. Write `.vscode/CLAUDE.md` (root) plus per-module/per-component files per that decision.
+1. Read `reference/structure-and-splitting.md` for the layout — the root `CLAUDE.md`
+   sections, which `docs/` files to create (and which to skip), when a module needs its
+   own folder, and the "Component Map" table that indexes them.
+2. Write `.vscode/CLAUDE.md` plus the `.vscode/docs/` files that decision calls for.
    Every factual claim (build commands, ports, config keys, class names) must come from
    files you actually read this session — apply `reference/verification-rigor.md` from the
    first line you write, not just in audit mode.
-3. Skip Step 3b, go to Step 4.
+3. Draft the Conventions section from what the code enforces, then ask the user for the
+   project-specific rules the code doesn't show (see "The Conventions section" in
+   `reference/structure-and-splitting.md`).
+4. Skip Step 3b, go to Step 4.
 
 ## Step 3b — Audit-and-update mode
 
@@ -128,6 +137,7 @@ memory that's now stale) — reconcile it in the same pass, don't leave it for l
 Report, concisely:
 - What's new (files created) and what changed (files corrected, with the specific wrong
   claim → corrected claim for anything non-trivial)
+- Files moved from the old layout, if any
 - Any files proposed for deletion or merging — present via `AskUserQuestion`, do not
   delete without an explicit answer (see `reference/redundancy-and-deletion.md`)
 - Any structural gaps you found but didn't fill (out of scope for this run, or needing a

@@ -14,7 +14,8 @@ uncommitted work, because that's exactly what it is.
 time — even if you're confident it's redundant, even if you already flagged it as a
 candidate in a previous turn.** Confidence that a file is stale is not the same as
 authorization to remove it. Use a direct confirmation question (not a buried mention in a
-larger summary) before running the delete.
+larger summary) before running the delete. The same rule covers moving or renaming a
+doc file, including the old-layout migration in `structure-and-splitting.md`.
 
 This applies even when the doc tree *is* tracked by git and a deletion would technically be
 recoverable — the same rule from general engineering practice applies: destructive actions
