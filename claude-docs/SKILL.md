@@ -1,6 +1,6 @@
 ---
 name: personal:claude-docs
-version: 2.0.0
+version: 2.1.0
 description: |
   Creates or updates a project's Claude Code documentation (.vscode/CLAUDE.md as a thin
   index, deep-dive docs under .vscode/docs/) so it stays a reliable map of the codebase
@@ -89,7 +89,9 @@ Using the component map from Step 2:
 3. Draft the Conventions section from what the code enforces, then ask the user for the
    project-specific rules the code doesn't show (see "The Conventions section" in
    `reference/structure-and-splitting.md`).
-4. Skip Step 3b, go to Step 4.
+4. Wrap Commands, Conventions and Gotchas in `<important if>` blocks (see "Relevance
+   blocks" in `reference/structure-and-splitting.md`).
+5. Skip Step 3b, go to Step 4.
 
 ## Step 3b — Audit-and-update mode
 
@@ -107,6 +109,10 @@ If a doc describes a bug and you need to determine whether the current branch in
 it (vs. it being pre-existing), or a `RESOLVED` verdict hinges on a fix that lives on some
 other branch, read `reference/cross-branch-verification.md` for the concrete git recipe —
 don't answer either question from a loose read of a diff.
+
+If the root `CLAUDE.md` has Commands, Conventions or Gotchas that are not wrapped in
+`<important if>` blocks, wrap them per "Relevance blocks" in
+`reference/structure-and-splitting.md`, without changing their content.
 
 For genuine gaps found via Step 2 that don't have a file yet, write them following
 `reference/structure-and-splitting.md`, same as create mode.

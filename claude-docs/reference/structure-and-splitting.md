@@ -51,10 +51,10 @@ every session, so every line costs context. Sections, in this order, skipping an
 nothing real to say:
 
 1. **What it is** — two or three lines: purpose, stack, shape (monorepo or single module).
-2. **Commands** — build, test, run, lint, exactly as they run in this repo.
+2. **Commands** — build, test, run, lint, exactly as they run in this repo (wrapped, see "Relevance blocks").
 3. **Component map** — the table described below, pointing into `docs/`.
-4. **Conventions** — see the next section.
-5. **Gotchas** — facts a reader would get wrong from reading the code alone.
+4. **Conventions** — see the next section; wrapped in relevance blocks.
+5. **Gotchas** — facts a reader would get wrong from reading the code alone; wrapped in relevance blocks.
 6. **Docs index** — one line per file under `docs/`, saying what question it answers.
 
 If the root file is growing past ~150 lines, something in it belongs in `docs/`.
@@ -76,6 +76,37 @@ testing conventions. Two sources, and only these two:
 Don't copy the user's general coding style into this section — that lives in their global
 config and applies to every project. Only project-specific rules belong here. Never
 invent a principle that neither the code nor the user supports.
+
+## Relevance blocks (`<important if>`)
+
+Claude Code loads every `CLAUDE.md` with a reminder that its content "may or may not be
+relevant" and should be ignored unless highly relevant. The more of the file that doesn't
+apply to the current task, the more likely the parts that do apply get ignored too. Wrap
+conditionally-relevant sections in `<important if="...">` so each one carries an explicit
+relevance signal.
+
+- **Bare, never wrapped:** what-it-is, component map, docs index — navigation every
+  task needs. Rule of thumb: relevant to 90%+ of tasks stays bare.
+- **Commands:** keep every command, wrap the table in
+  `<important if="you need to build, test, lint, run or generate code">`.
+- **Conventions and Gotchas:** one block per rule or per tightly related group, each with
+  its own narrow trigger. A broad trigger ("you are writing any code") matches everything
+  and defeats the purpose.
+
+```
+<important if="you are adding or modifying database migrations">
+- Migrations live in `db/migration/` named `V{n}__{description}.sql`
+</important>
+
+<important if="you are writing or running integration tests">
+- They need Docker (Testcontainers)
+</important>
+```
+
+Keep the file lean while doing this: cut anything a linter, formatter or hook already
+enforces, anything the code teaches by its consistent patterns, and code snippets (point to
+a file path instead). Don't move blocks into extra files — the point is that everything
+stays inline but conditionally weighted. The ~150-line limit still applies.
 
 ## When a module needs its own deep-dive folder
 
