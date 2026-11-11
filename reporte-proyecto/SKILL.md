@@ -1,6 +1,6 @@
 ---
 name: personal:reporte-proyecto
-version: 1.2.0
+version: 1.3.1
 description: |
   Genera la actualización de estado semanal de un proyecto Jira (clave y
   nombre indicados por el usuario) para el cliente, a partir de las issues creadas o
@@ -70,11 +70,27 @@ Hay dos fuentes obligatorias:
 
 Cómo conseguirlas:
 
-- **Tareas y comentarios**: el proyecto es Jira; pedile al usuario la clave
-  (`<CLAVE>`) si no la dio. Buscá las issues actualizadas en los últimos 7
-  días con `searchJiraIssuesUsingJql` usando algo como
-  `project = <CLAVE> AND updated >= -7d ORDER BY updated DESC`, incluyendo el
-  campo `comment` en `fields` para traer los comentarios de cada issue.
+- **Tareas y comentarios**: la clave del proyecto Jira (`<PROYECTO>`) y el
+  `cloudId` del sitio salen de la memoria del usuario; si no están, pedirlos o
+  resolverlos con `getVisibleJiraProjects` y `getAccessibleAtlassianResources`.
+  Buscá las issues actualizadas desde la fecha del reporte anterior con
+  `searchJiraIssuesUsingJql`:
+  `project = <PROYECTO> AND updated >= "AAAA-MM-DD" ORDER BY updated DESC`,
+  pidiendo solo `summary`, `status` y `updated`. Después traé los comentarios de
+  cada issue con `getJiraIssue` (`fields: ["summary","status","comment","updated"]`).
+  No pedir `comment` ni `description` en la búsqueda JQL: con muchas issues la
+  llamada se cuelga y falla por timeout a los 300 s. Para el estado general,
+  listar también las abiertas con `project = <PROYECTO> AND statusCategory != Done`.
+  Las issues de QA son las que empiezan con "QA -"; si no tienen comentarios
+  nuevos en la semana, preguntar al usuario si hubo novedades en lugar de
+  repetir el estado anterior.
+- **Conversaciones de la semana (modo local)**: revisar las sesiones de Claude
+  Code en `~/.claude/projects/` de las carpetas del cliente (el prefijo sale
+  de la memoria del usuario; si no está, preguntarlo), excluyendo
+  `Projects-Personal`.
+  Leer solo los mensajes del usuario con un script (no volcar las sesiones
+  enteras) y descartar lo que es herramientas de desarrollo, plugins, skills y
+  configuración personal: no es contenido del reporte.
 - **Reporte de la semana anterior**: buscalo en Confluence con
   `searchConfluenceUsingCql` (por ejemplo `space = "<espacio del proyecto>"
   AND title ~ "actualización de estado"` o similar) y traé la página más
@@ -198,7 +214,7 @@ El público incluye gente no técnica, y aunque lo sea no conoce el detalle del
 código. Patrón observado en todos los reportes anteriores:
 
 - Se nombran sistemas, APIs, funcionalidades, procesos y ambientes (el
-  sistema de pagos, la pasarela, el bus de archivos, S3, DEV, QA, Backoffice).
+  sistema de pagos, el panel de administración, el servicio de archivos, DEV, QA).
 - Nunca se nombran tablas, columnas, índices, clases, métodos, campos, ids
   internos ni nombres de variables. Nada entre backticks. Una pregunta de
   control: si el término solo existe dentro del código, no va.
@@ -255,5 +271,29 @@ Mostrá el resultado completo listo para copiar. Si tuviste que asumir algo
 por falta de información (por ejemplo, el estado de un bloqueo que no
 quedó claro en las fuentes), indicalo al final, fuera del bloque del
 reporte, para que el usuario lo confirme o corrija.
+
+---
+
+## Step 6 — Verificar las horas en Clockify
+
+Solo en modo local y si el MCP de Clockify está disponible (buscarlo con
+ToolSearch). Si no está, avisar al usuario y omitir este paso sin inventar
+horas.
+
+1. Traer las entradas de tiempo de la semana del reporte (mismo rango que las
+   issues de Jira).
+2. Cruzarlas contra lo reportado: cada frente del reporte debería tener horas
+   cargadas, y cada bloque grande de horas debería corresponder a algo del
+   reporte o a una tarea de Jira.
+3. Marcar al usuario, en una lista corta fuera del reporte:
+   - horas cargadas a un frente que no aparece en el reporte;
+   - frentes del reporte sin horas;
+   - entradas con descripción vaga, repetida o que no se entiende (por ejemplo
+     "varios", "ajustes");
+   - entradas de más de 3 horas seguidas, o días sin carga;
+   - proyecto o tarea de Clockify distinto del que corresponde al trabajo.
+4. No modificar ni borrar entradas: solo reportar las observaciones.
+
+El detalle de horas nunca va dentro del reporte al cliente.
 
 No expliques tu proceso a menos que el usuario lo pida.

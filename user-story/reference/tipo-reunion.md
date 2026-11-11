@@ -61,7 +61,7 @@ Tareas identificadas
 
 ```
 Contexto
-Se desea realizar un pase a producción de los últimos cambios implementados a Pagos Recurrentes y al panel de administración. Entre estos cambios, los principales son:
+Se desea realizar un pase a producción de los últimos cambios implementados al servicio de pagos y al panel de administración. Entre estos cambios, los principales son:
 - Fix para actualización de credenciales.
 - Tokenización por marca de tarjeta
 - Fix para login con un proveedor externo (SSO)
