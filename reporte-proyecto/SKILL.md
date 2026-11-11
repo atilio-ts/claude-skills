@@ -1,6 +1,6 @@
 ---
 name: personal:reporte-proyecto
-version: 1.3.1
+version: 1.4.0
 description: |
   Genera la actualización de estado semanal de un proyecto Jira (clave y
   nombre indicados por el usuario) para el cliente, a partir de las issues creadas o
@@ -15,6 +15,7 @@ allowed-tools:
   - mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql
   - mcp__claude_ai_Atlassian_Rovo__getJiraIssue
   - mcp__claude_ai_Atlassian_Rovo__getVisibleJiraProjects
+  - mcp__claude_ai_Atlassian_Rovo__getAccessibleAtlassianResources
   - mcp__claude_ai_Atlassian_Rovo__getConfluencePage
   - mcp__claude_ai_Atlassian_Rovo__getPagesInConfluenceSpace
   - mcp__claude_ai_Atlassian_Rovo__searchConfluenceUsingCql
@@ -39,7 +40,7 @@ Cuando se ejecuta en la carpeta local de reportes (la que tiene `old/` y
 
 - `old/` contiene todos los reportes ya enviados, en PDF, uno por semana. Los
   de 2026 se llaman `DD-MM-26 Actualización semanal de estado del proyecto.pdf`;
-  los más viejos tienen prefijos distintos (por ejemplo "PROY 003-24 ... - Asana").
+  los más viejos pueden tener otros prefijos o sufijos en el nombre.
   Esos PDFs son la fuente de continuidad: se leen con `pdftotext`.
 - El borrador de la semana lo deja el usuario en `current-report.md` en la raíz.
   Cuando el reporte queda final, el usuario lo exporta a PDF y lo mueve a `old/`.
@@ -51,6 +52,40 @@ Cuando se ejecuta en la carpeta local de reportes (la que tiene `old/` y
   `DD-MM-26 Actualización semanal de estado del proyecto.md` y sin pisar
   `current-report.md`. Aplicar ediciones puntuales que pida el usuario sobre ese
   archivo en lugar de reescribirlo entero.
+
+---
+
+## Step 0 — Datos del proyecto
+
+Esta skill no contiene datos de ningún cliente. Antes de buscar nada, obtené:
+
+- `<PROYECTO>`: clave del proyecto Jira.
+- `<CLOUD_ID>`: id del sitio Atlassian.
+- `<PREFIJO_SESIONES>`: prefijo de las carpetas de sesiones de Claude Code del
+  cliente en `~/.claude/projects/`. Solo en modo local.
+
+Orden de resolución:
+
+1. **Memoria del usuario.** Buscá una nota sobre el alcance del reporte de
+   proyecto que tenga esos valores. Si existe, usala sin preguntar. Si el
+   entorno no tiene memoria (por ejemplo Rovo), pasá al punto 2.
+2. **Resolverlos con Atlassian**, sin pedir lo que se pueda deducir:
+   - `<CLOUD_ID>`: llamá a `getAccessibleAtlassianResources`. Si devuelve un solo
+     sitio, usá su `id`. Si devuelve varios, preguntá cuál.
+   - `<PROYECTO>`: llamá a `getVisibleJiraProjects` con ese `cloudId`. Si el
+     usuario dio un nombre o una clave, buscala en el resultado. Si no dio nada o
+     hay más de una coincidencia, mostrá la lista corta (clave y nombre) y
+     preguntá cuál.
+3. **`<PREFIJO_SESIONES>`** (solo modo local): listá `~/.claude/projects/` y
+   proponé las carpetas que coincidan con el nombre del cliente o del proyecto;
+   si hay dudas, preguntá el prefijo. Es el nombre de carpeta codificado, por
+   ejemplo `-Users-<usuario>-Projects-<cliente>`.
+
+Pedí los valores faltantes una sola vez, todos juntos. Cuando los tengas,
+ofrecé guardarlos en la memoria del usuario para no volver a preguntarlos. Si
+acepta, guardalos solo ahí: nunca en esta skill, en el README ni en ningún
+archivo del repositorio. Si la memoria ya tenía valores y el usuario da otros,
+preguntá si reemplazar los guardados.
 
 ---
 
@@ -70,10 +105,8 @@ Hay dos fuentes obligatorias:
 
 Cómo conseguirlas:
 
-- **Tareas y comentarios**: la clave del proyecto Jira (`<PROYECTO>`) y el
-  `cloudId` del sitio salen de la memoria del usuario; si no están, pedirlos o
-  resolverlos con `getVisibleJiraProjects` y `getAccessibleAtlassianResources`.
-  Buscá las issues actualizadas desde la fecha del reporte anterior con
+- **Tareas y comentarios**: con `<PROYECTO>` y `<CLOUD_ID>` del Step 0, buscá
+  las issues actualizadas desde la fecha del reporte anterior con
   `searchJiraIssuesUsingJql`:
   `project = <PROYECTO> AND updated >= "AAAA-MM-DD" ORDER BY updated DESC`,
   pidiendo solo `summary`, `status` y `updated`. Después traé los comentarios de
@@ -85,9 +118,8 @@ Cómo conseguirlas:
   nuevos en la semana, preguntar al usuario si hubo novedades en lugar de
   repetir el estado anterior.
 - **Conversaciones de la semana (modo local)**: revisar las sesiones de Claude
-  Code en `~/.claude/projects/` de las carpetas del cliente (el prefijo sale
-  de la memoria del usuario; si no está, preguntarlo), excluyendo
-  `Projects-Personal`.
+  Code en `~/.claude/projects/` cuyas carpetas empiecen con `<PREFIJO_SESIONES>`
+  (Step 0), excluyendo `Projects-Personal`.
   Leer solo los mensajes del usuario con un script (no volcar las sesiones
   enteras) y descartar lo que es herramientas de desarrollo, plugins, skills y
   configuración personal: no es contenido del reporte.
@@ -101,8 +133,8 @@ Cómo conseguirlas:
   inventes avances, problemas o próximos pasos que no estén respaldados por
   lo recolectado.
 
-**Excluí siempre** cualquier tarea o comentario sobre estimación de horas
-para modernización de proyectos — es información interna que nunca se
+**Excluí siempre** cualquier tarea o comentario sobre estimación de horas o
+presupuestos de trabajo futuro — es información interna que nunca se
 reporta al cliente.
 
 ---
@@ -187,8 +219,8 @@ Los puntos clave incluyen:
   Persiste el bloqueo para las alertas automáticas por permisos de
   seguridad sobre servicios de mensajería, que sigue en gestión con el
   equipo de seguridad.
-  Se detectaron respuestas inconsistentes desde funciones del Core
-  utilizadas por la modernización de una de las APIs, lo que obligó a
+  Se detectaron respuestas inconsistentes desde un servicio compartido
+  utilizado por una de las APIs, lo que obligó a
   solicitar una revisión antes de completar la validación final.
 ```
 
@@ -229,7 +261,7 @@ código. Patrón observado en todos los reportes anteriores:
   "lote", "nueva arquitectura".
 - Términos de infraestructura (runner, pipeline, Jenkins, AWS) se pueden usar
   tal cual, sin explicar la implementación. Herramientas internas poco
-  conocidas se aclaran una vez ("repositorio de la empresa (Artifactory)").
+  conocidas se aclaran una vez ("repositorio de artefactos de la empresa").
 - Largo: Resumen, una o dos líneas por bullet. Avances Realizados, dos a
   cuatro líneas por bullet, centradas en qué se hizo y para qué.
 - Para cada bullet con frente concreto, abrir con "Para <frente>, se ..." como
@@ -252,7 +284,7 @@ Antes de mostrar el resultado final, revisá:
 - ¿Todo bullet termina en punto?
 - ¿Ningún bloqueo persistente del reporte anterior desapareció sin
   explicación?
-- ¿Se excluyó todo lo relacionado a estimación de horas para modernización?
+- ¿Se excluyó todo lo relacionado a estimación de horas o presupuestos?
 - ¿Hay nombres de personas, links o IDs de tareas colados en el texto? Si
   los hay, sacalos.
 - ¿Se usó "avances significativos" en algún lado? Si sí, corregilo a

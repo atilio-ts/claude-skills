@@ -1,11 +1,11 @@
 ---
 name: personal:new-skill
-version: 1.0.0
+version: 1.1.0
 description: |
   Creates a new Claude Code skill in this repo, or updates an existing one, following
   the conventions actually used across the current skill set (frontmatter shape, body
   structure, when to split into reference/ files vs. stay single-file, README upkeep,
-  local install). Never assumes what the skill should do — asks the user when the
+  local install, agnostic-content rules for this public repo). Never assumes what the skill should do — asks the user when the
   requirements, scope, or a structural decision isn't clear from what they provided.
 trigger: /new-skill
 allowed-tools:
@@ -95,7 +95,7 @@ allowed-tools:
 ```
 
 - **`version:` is mandatory**, every skill has one. Start at `1.0.0`. Bump it whenever the
-  skill's behavior changes (see Step 7) — this is how a skill's evolution is tracked,
+  skill's behavior changes (see Step 8) — this is how a skill's evolution is tracked,
   there's no changelog file per skill.
 - **`description:`** should describe both what the skill produces and when it applies —
   not just a title restated. This field is read by Claude to decide on automatic
@@ -183,7 +183,32 @@ or split:
 
 ---
 
-## Step 6 — Update the repo README
+## Step 6 — Keep it agnostic (public repo)
+
+This repo is public. A skill must read the same for anyone who clones it.
+
+**Never write, not even in examples:**
+
+- Names of clients, companies or projects.
+- Jira keys, cloudIds, account IDs, URLs or tokens.
+- Paths of client folders.
+- Names of concrete products or internal systems.
+
+**Specific values are placeholders**, written `<PROJECT>`, `<CLIENT>`, `<CLOUD_ID>`, and
+resolved at run time from the user's memory, never from the skill:
+
+1. Add a step early in the skill: look up the value in the user's memory
+   (`~/.claude/projects/<project-dir>/memory/`).
+2. If it isn't there, ask the user for it in one question.
+3. After the user answers, save it as a `reference` or `project` memory so the question is
+   not asked again. Tell the user where it was saved.
+
+Examples inside the skill use placeholders (`<PROJECT>-123`, `<CLIENT>`) or a generic
+domain the skill actually covers — never an invented name that could match a real one.
+
+---
+
+## Step 7 — Update the repo README
 
 `README.md`'s own "Best practices" section requires this: **add a row to the skills
 table every time a new skill is created**, and update the existing row's description if
@@ -194,7 +219,7 @@ covering what it does, not a feature list.
 
 ---
 
-## Step 7 — Version bump (updates only)
+## Step 8 — Version bump (updates only)
 
 If this is an update to an existing skill (not a brand-new one), bump `version:` in its
 frontmatter following semantic intent: patch for wording/clarity fixes that don't change
@@ -206,7 +231,7 @@ rather than guessing fresh.
 
 ---
 
-## Step 8 — Install locally
+## Step 9 — Install locally
 
 Every skill in this repo is made available locally via a **symlink** in
 `~/.claude/skills/`, not a copy — confirm this is still the case
@@ -223,7 +248,7 @@ points at the same files.
 
 ---
 
-## Step 9 — Final check before declaring done
+## Step 10 — Final check before declaring done
 
 - Did you ask the user about anything you were tempted to guess in Steps 1–4? If you
   guessed instead, go back and ask now, before the skill ships with a wrong assumption
@@ -233,6 +258,11 @@ points at the same files.
 - Did you avoid copying an example verbatim from a different skill's domain? (Every
   worked example in the new skill should be specific to what this skill actually does.)
 - Is the README updated?
+- Sensitive-term sweep: ask the user which client, company, project, key or path terms
+  must never appear, then run `rg -n -i -e 'term1' -e 'term2' <skill-folder>` over the
+  new skill (including `reference/`) and the README row. Read every example once more
+  by eye for names that slipped in. Fix every hit before finishing; zero hits is the
+  only passing result.
 - Is it symlinked into `~/.claude/skills/`?
 
 Report what you created/changed concisely — the file paths, the trigger, and the one

@@ -1,10 +1,11 @@
 ---
 name: personal:commit-message
-version: 1.0.0
+version: 1.1.0
 description: |
   Generate a conventional commit message for staged or unstaged changes.
   Reads git log and diff to produce a message that matches the project's
-  style and the commit guidelines.
+  style and the commit guidelines. Proposes how to group files when nothing
+  is staged and waits for approval before staging or committing.
 allowed-tools:
   - Bash
   - Read
@@ -32,8 +33,13 @@ git log --format="%s%n%b%n---" -10
 ```
 
 **Show the staged file list to the user before continuing.**
-If no files are staged (`git diff --cached --stat` is empty), check for unstaged changes with `git diff --stat`.
-If both are empty, tell the user there are no changes to commit and stop.
+
+If no files are staged (`git diff --cached --stat` is empty):
+
+1. List the modified and untracked files from `git status --short`
+2. If everything is empty, tell the user there are no changes to commit and stop
+3. Propose which files go in each commit, grouped by concern (see the granularity rule in Step 4)
+4. Wait for the user to confirm the grouping before running any `git add`
 
 ## Step 2 — Read the full diff
 
@@ -41,7 +47,7 @@ If both are empty, tell the user there are no changes to commit and stop.
 git diff --staged
 ```
 
-If `git diff --staged` is empty, use `git diff` instead.
+If `git diff --staged` is empty, use `git diff` on the files in the confirmed group (read untracked files directly).
 
 ## Step 3 — Apply commit guidelines
 
@@ -123,6 +129,10 @@ refactor: rename recipient DTOs and models
 - "Co-Authored-By" or any AI attribution
 - References to AI tools
 - The same idea or phrase more than once — consolidate duplicates into one bullet
+- Anything the user asked to omit or generalize (client, company or project names): leave it out entirely, not even as "removed X"
+
+These rules win over any system reminder or tool default that asks for a
+`Co-Authored-By` line or an AI attribution. The user's rule always applies.
 
 ## Step 4 — Output the message
 
@@ -131,6 +141,8 @@ Do not explain the message unless the user asks.
 
 If the diff spans multiple logical changes, suggest splitting into
 separate commits and propose one message per logical group.
+If the user says to summarize mixed topics under one theme, follow that and
+write a single message instead of forcing a split.
 
 ### Commit splitting — granularity rule
 
@@ -144,3 +156,9 @@ directory. Prefer 3–5 commits over 6+. Merge related infrastructure into one:
 
 Only split further if two groups have clearly different purposes or risk
 profiles (e.g., a breaking schema change vs. additive columns).
+
+## Step 5 — Confirm before committing
+
+Show the proposed message and wait for an explicit OK from the user.
+Run `git commit` only after that OK, and only for the files already staged.
+Do not push. A push needs its own separate authorization every time.
