@@ -20,9 +20,10 @@ funcionalidad terminada.
 4. **Definición de hecho** — el entregable concreto: documento corregido,
    estimación verificada, decisión tomada y comunicada. Nunca "código
    funcionando", porque no es ese tipo de tarea.
-5. **Story Points** — solo si la plataforma es Jira. Si hay mucha
-   incertidumbre sobre el esfuerzo del análisis en sí, es válido dar un rango
-   (ver `plataforma-jira.md`).
+
+En Jira, los Story Points se sugieren fuera de la descripción. Si hay mucha
+incertidumbre sobre el esfuerzo del análisis en sí, es válido dar un rango
+(ver `plataforma-jira.md`).
 
 ## Estilo
 

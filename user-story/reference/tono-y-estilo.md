@@ -28,7 +28,12 @@ Ver `tipo-bugfix.md` para el ejemplo completo antes/después de un caso real.
   no un documento corporativo. Usar primera persona del plural cuando
   corresponda ("se nos compartieron los documentos", "nos indicaron que",
   "tenemos el requerimiento de"). Evitar frases como "cabe destacar que",
-  "en el marco de", "a los efectos de".
+  "en el marco de", "a los efectos de", y etiquetas que suenan robóticas
+  ("Investigación:", "Causa:", "La idea es", "El enfoque es"): usar "El
+  objetivo de esta tarea es …" y párrafos con algo de relato.
+- **Personas**: no nombrar compañeros ni personas en historias y bugs; hablar
+  de equipos ("el equipo de infraestructura", "el equipo responsable"). La
+  excepción son las minutas de reunión (`tipo-reunion.md`).
 - **Contexto**: describir de dónde viene la tarea en términos concretos —
   qué se recibió, quién lo solicitó, qué documento o evento lo desencadenó.
   Evitar aperturas impersonales tipo "El documento X introduce Y"; preferir
@@ -38,7 +43,9 @@ Ver `tipo-bugfix.md` para el ejemplo completo antes/después de un caso real.
   no prosa. No hay que "traducirlos" ni sacarlos, solo explicar qué significan
   para el negocio cuando sea relevante.
 - **Longitud**: lo suficientemente detallado para que un tercero entienda el
-  alcance, sin repetir información ni agregar relleno.
+  alcance, sin repetir información ni agregar relleno. Ante la duda, más
+  corto: nadie lee una tarea larguísima. Si el trabajo de otra historia es
+  contexto, se enlaza por su clave en vez de contarlo de nuevo.
 - **Sin saltos de línea manuales dentro de un párrafo**: nunca cortes una
   oración con un salto de línea para que se vea prolija en el archivo o en
   el editor. Tanto Asana como Jira reformatean el texto dinámicamente según
@@ -66,3 +73,6 @@ de un diseño que en su momento fue válido.
   cambió y por qué, solo leyendo esto?
 - ¿Cada párrafo del resultado final va en una sola línea continua, sin
   saltos de línea manuales a mitad de oración?
+- ¿Se lee como una tarea a hacer y no como un registro de lo hecho?
+- ¿Quedó algún nombre de persona, dato de una corrida puntual (ids, conteos)
+  o etiqueta robótica ("Investigación:", "la idea", "enfoque")?

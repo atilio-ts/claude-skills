@@ -14,18 +14,25 @@ averiguarlo como parte del trabajo (historia).
 ## Campos
 
 1. **Título** — una línea que resuma la funcionalidad o tarea.
-2. **Contexto** — de dónde viene el pedido: qué proyecto, quién lo solicitó,
-   qué documento o evento lo desencadenó.
-3. **Descripción del problema/tarea** — objetivo concreto y, si corresponde,
-   los pasos o el enfoque propuesto de implementación.
-4. **Definición de hecho** — criterios verificables de cuándo se considera
-   terminada.
-5. **Story Points** — solo si la plataforma es Jira (ver `plataforma-jira.md`).
+2. **Contexto** — de dónde viene el pedido: qué proyecto, qué equipo lo
+   solicitó, qué documento o evento lo desencadenó. 1 a 3 párrafos cortos.
+3. **Descripción de la tarea** — un párrafo que abre con "El objetivo de esta
+   tarea es …", seguido de "Para lograrlo hay que:" y 4 a 7 viñetas con los
+   pasos principales.
+4. **Definición de hecho** — 4 a 7 criterios verificables de cuándo se
+   considera terminada. Cierres habituales: cambios en una rama listos para
+   revisión, colección de pruebas actualizada, contrato o documentación
+   actualizados.
 
 ## Estilo
 
+- **Es una tarea a hacer, no un registro de lo hecho.** Aunque el trabajo ya
+  esté avanzado o terminado cuando se escribe la historia, se redacta como el
+  objetivo y los pasos a realizar. Nunca usar secciones "Lo que se hizo / Lo
+  que falta", hashes de commit, estado de ramas ni "pendiente de commit/MR".
 - La descripción explica el **qué** y el **por qué**, no un tutorial paso a
-  paso de cómo programarlo.
+  paso de cómo programarlo. Sin desglose por capas del proyecto ni decisiones
+  internas de implementación: eso va en el código o en un comentario.
 - Si la tarea involucra varios repos o componentes, listalos explícitamente
   (ver ejemplo de User Pool abajo) — ayuda a quien lee a dimensionar el alcance
   sin tener que adivinar.
@@ -33,6 +40,38 @@ averiguarlo como parte del trabajo (historia).
   mantienen, pero el impacto se explica en palabras simples.
 
 ## Ejemplos reales
+
+**Ejemplo en Jira (formato actual de referencia):**
+
+Título: `<PREFIJO> - Modernización del servicio de pagos: consulta del detalle de transacciones`
+
+```
+## Contexto
+
+Como parte de la modernización del servicio de pagos, se están migrando las consultas del servicio original al nuevo proyecto. Esta tarea continúa lo realizado en <PROYECTO>-120, que dejó lista la base del proyecto.
+
+---
+
+## Descripción de la tarea
+
+El objetivo de esta tarea es migrar la consulta del detalle de transacciones, que permite ver el comprobante de una transferencia ya realizada, manteniendo la misma respuesta que el servicio original.
+
+Para lograrlo hay que:
+
+- Implementar el endpoint `POST /transactions` según el contrato de la API.
+- Migrar las consultas al sistema central que usa el servicio original.
+- Comparar las respuestas con las del servicio original y corregir las diferencias.
+- Agregar las pruebas automáticas correspondientes.
+
+---
+
+## Definición de hecho
+
+- Endpoint `POST /transactions` implementado con sus pruebas automáticas.
+- Respuestas equivalentes a las del servicio original para los casos probados.
+- Colección de pruebas actualizada.
+- Cambios en la rama `feature/transactions`, listos para revisión.
+```
 
 **Ejemplo simple (historia chica, bien acotada):**
 

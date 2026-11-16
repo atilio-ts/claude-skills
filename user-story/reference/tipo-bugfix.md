@@ -41,13 +41,21 @@ resto de las inferencias (ver Paso 5 del `SKILL.md`).
    entender el código para entender qué se rompe.
 4. **Definición de hecho** — criterios verificables, idealmente incluyendo
    tests si aplica.
-5. **Story Points** — solo si la plataforma es Jira (ver `plataforma-jira.md`).
 
 ## Estilo
 
-- El detalle técnico (nombres de clases, fragmentos de código, condiciones)
-  se mantiene tal cual — no hay que "simplificarlo" quitando información,
-  sino sumarle una capa de traducción a impacto.
+- Los identificadores técnicos (nombres de clases, excepciones, endpoints,
+  condiciones) se mantienen tal cual y se les suma una frase de impacto.
+- Los datos de una corrida puntual no van: ids de lotes o procesos, conteos
+  exactos, rangos de ejecuciones. Escribir "un lote con más presentaciones de
+  las declaradas", no "el lote 117 tenía 12.001 presentaciones".
+- Un bug simple puede usar etiquetas en línea (Comportamiento actual,
+  Comportamiento esperado, Causa raíz). Un diagnóstico o incidente se cuenta en
+  párrafos narrados en primera persona del plural, sin etiquetas como
+  "Investigación:", "Causa:", "Idea:" o "Enfoque:". Para la solución, usar
+  "El objetivo de esta tarea es …" y "Para lograrlo, proponemos …".
+- Contar la historia a nivel de equipo: "en base a la información compartida
+  por el equipo de infraestructura", nunca qué persona hizo qué.
 - Evitá el tono de reporte de incidente formal ("se ha detectado una
   anomalía..."); escribí como se lo contarías a un compañero.
 

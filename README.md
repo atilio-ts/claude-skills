@@ -18,7 +18,7 @@ Personal collection of skills for [Claude Code](https://claude.ai/code).
 | [`/update-versions`](./update-versions/SKILL.md) | Updates the open project to the latest stable version of everything it pins (latest LTS for runtimes, exact versions, never `latest`): read-only inventory with official sources, compatibility proven in a throwaway copy, a phased plan executed by one subagent per phase under supervision, the version rule written into the project's docs, and a final report. |
 | [`/comment-story`](./comment-story/SKILL.md) | Drafts follow-up comments for Jira tasks (environment deploys, test results, progress, code review, blockers, closures) as short plain-language paragraphs without bullets or code identifiers, in Spanish. |
 | [`/timesheet`](./timesheet/SKILL.md) | Generates Clockify-format timesheet entries for a day, week, or range, based on what the user picks: the period's Claude Code and omp conversations, git changes, queries, or the entries already in Clockify (read-only API, to skip what is loaded). Tasks capped at 3h with project and tag, grouped per day and completed to 8h per workday, in Spanish or English. |
-| [`/user-story`](./user-story/SKILL.md) | Drafts stories, bugs, analysis tasks, or meeting notes for Jira and Asana from loose requirements, adapting format (markdown vs. plain text) and tone to the platform and task type. |
+| [`/user-story`](./user-story/SKILL.md) | Drafts stories, bugs, analysis tasks, or meeting notes from loose requirements, for Jira by default (Asana only when named), matching the format of the project's recent stories. |
 
 ---
 
