@@ -20,16 +20,20 @@ técnico.
 - **Apertura natural.** Según el caso: "El día de hoy se…", "El día de ayer
   se…", "Durante la semana se…", "Luego de las pruebas en DEV se…". No variar
   por variar: son las aperturas habituales del equipo.
-- **Cierre con estado o con espera.** Cuando corresponde, la última oración
-  indica el estado o lo que se espera ("Quedo atento al pase al siguiente
-  ambiente", "Queda en espera de la definición para el pase a producción").
-  Es el único lugar donde se admite la primera persona singular.
+- **Cierre opcional.** Cuando el usuario lo indica o el estado lo pide, la
+  última oración dice qué se espera ("Quedo atento a los resultados", "Queda
+  en espera de la definición para el pase a producción"). Es el único lugar
+  donde se admite la primera persona singular. Si no hay nada que esperar, el
+  comentario termina con el último hecho.
 - **Resultado explícito.** Decir cómo salió: "sin fallas", "con el resultado
   esperado", "ya corregido y en revisión". Si algo falló, decirlo con su
   impacto y su estado.
 - **Largo.** Pase de ambiente o cierre: una o dos oraciones. Avance o
-  resultado de pruebas: uno a tres párrafos cortos. Sin repetir información ni
-  agregar relleno.
+  resultado de pruebas: uno a tres párrafos cortos. Entre 40 y 130 palabras.
+  Sin repetir información ni agregar relleno. Un avance se resume en qué se
+  hizo y para qué sirve, no en la lista de piezas tocadas.
+- **MR.** Si solo se comparte una MR, alcanza con una línea: "Comparto la MR
+  para verificación: <link>".
 - **Un párrafo es una única línea continua.** No cortar oraciones con saltos
   de línea manuales: Jira reformatea el texto según el ancho de pantalla. El
   salto de línea se usa solo entre párrafos.
@@ -48,9 +52,13 @@ técnico.
 - Se puede mencionar que se agregaron pruebas automáticas, sin detallarlas.
 - Evitar jerga de desarrollo ("refactor", "deadlock", "endpoint", "query"):
   preferir "reorganización", "bloqueo entre procesos", "servicio", "consulta".
+- Se pueden incluir fechas ("el 10/11") y números de versión ("versión
+  2.3.0") cuando aportan al seguimiento.
 - Sin nombres de personas, de comercios ni de clientes, y sin identificadores
   de lotes o de tareas, salvo que el usuario pida nombrar a alguien (por
   ejemplo, quien debe revisar): en ese caso se usa el nombre tal como lo dio.
+  Un nombre que el usuario aceptó no se marca como error al revisar
+  comentarios ya publicados; las faltas de ortografía se avisan aparte.
   Los links no van, salvo la MR cuando el usuario la pasa: en ese caso va en
   una línea aparte al final.
 - Se pueden nombrar las herramientas de calidad del equipo (Sonar, la code
@@ -61,6 +69,11 @@ técnico.
 
 ## Qué no incluir
 
+- Nada que el usuario no haya contado: resultados, conclusiones, salvedades
+  ni próximos pasos agregados por cuenta propia.
+- Temas que el usuario pidió dejar fuera, ni caídas o problemas de sistemas
+  de terceros que no sean el tema del comentario.
+- La code review o la revisión de calidad, salvo que el usuario la mencione.
 - Pasos del proceso de trabajo ni descripciones de cómo se probó,
   más allá de qué se cubrió.
 - Justificaciones largas ni disculpas.
@@ -100,3 +113,6 @@ Después (párrafos, lenguaje llano):
 - ¿Se evitó todo identificador de código, backtick, nombre de persona o ID?
 - ¿Un Scrum Master que no programa entendería qué se hizo y qué sigue?
 - ¿Respeta tildes y ñ, y no repite lo que ya decía un comentario anterior?
+- ¿Tiene un largo parecido a los últimos comentarios del usuario?
+- ¿Todo lo que afirma lo contó el usuario o sale de las fuentes?
+- ¿Cada comentario indica en qué tarea va y si es nuevo o reemplaza otro?

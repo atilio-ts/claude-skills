@@ -1,6 +1,6 @@
 ---
 name: personal:comment-story
-version: 1.0.0
+version: 1.1.0
 description: |
   Redacta comentarios de seguimiento para historias, bugs y tareas de Jira a
   partir de lo que el usuario cuenta que hizo: pases de ambiente, resultados
@@ -50,13 +50,30 @@ Necesitás saber:
 - Si hay una MR para compartir.
 - Si el comentario cubre varios días: se entrega un texto por día.
 
-Si el usuario te pasa la clave de la tarea y el MCP de Jira está disponible,
-leé la descripción y los últimos comentarios con `getJiraIssue` (pidiendo
-`comment` en `fields`) para mantener el hilo y no repetir lo ya dicho. El
-`cloudId` se obtiene con `getAccessibleAtlassianResources`.
+Si el MCP de Jira está disponible, usalo siempre (el `cloudId` se obtiene con
+`getAccessibleAtlassianResources`):
 
-Si falta lo esencial para escribir algo coherente, preguntá lo mínimo, no más
-de tres preguntas. Si podés inferir, inferí y marcalo al final.
+1. **Ubicar la tarea.** Si el usuario pasó la clave, usala. Si no, buscá sus
+   tareas abiertas con `searchJiraIssuesUsingJql` (`assignee = currentUser()
+   AND statusCategory != Done`, solo `summary` y `status`) y proponé a cuál
+   va cada comentario. Si ninguna corresponde, decilo y sugerí crear una
+   antes de redactar.
+2. **Leer la tarea** con `getJiraIssue` (`fields: ["summary","status",
+   "description","comment"]`) para mantener el hilo y no repetir lo ya dicho.
+3. **Calibrar con los comentarios del usuario.** Tomá sus 2 o 3 últimos
+   comentarios en esa tarea o en tareas vecinas y copiá su largo, su
+   vocabulario y su nivel de detalle. Esa es la referencia, por encima de los
+   ejemplos de este skill.
+
+Si el comentario afirma un estado (por ejemplo que algo inicia o funciona),
+revisá antes los últimos commits del repo para no contradecir un cambio
+posterior.
+
+**No inventes.** Escribí solo lo que el usuario contó o lo que está en las
+fuentes. Nunca agregues por tu cuenta resultados, conclusiones ("está en
+condiciones de pasar a producción"), salvedades ni próximos pasos. Si falta
+uno de esos datos, preguntalo, no más de tres preguntas a la vez. Solo se
+puede inferir algo menor, como la fecha, y se marca al final.
 
 ---
 
@@ -85,16 +102,36 @@ reglas de redacción, el nivel de lenguaje y el checklist.
 
 Regla central: **párrafos, no viñetas**. Un comentario es de una a tres
 oraciones para un pase o un cierre, y de uno a tres párrafos cortos para un
-avance o un resultado de pruebas.
+avance o un resultado de pruebas. Entre 40 y 130 palabras en total; ante la
+duda, más corto.
+
+Si varias tareas reciben casi el mismo comentario, escribilo una vez y aclará
+en qué tareas va, en lugar de repetir el texto.
 
 ---
 
 ## Paso 4 — Verificar y entregar
 
-Pasá el checklist de `reference/tono-y-estilo.md`. Mostrá el comentario listo
-para copiar, sin explicar tu proceso. Si inferiste algo (una fecha, un
-estado), indicalo al final, fuera del texto del comentario, para que el
-usuario lo confirme o corrija.
+Pasá el checklist de `reference/tono-y-estilo.md`. Entregá sin explicar tu
+proceso, con este formato:
+
+```
+No publiqué nada en Jira: copiá cada texto en su tarea.
+
+<PROYECTO>-123 — <título de la tarea> (<estado>)
+NUEVO
+<texto del comentario>
+
+<PROYECTO>-124 — <título de la tarea> (<estado>)
+REEMPLAZA el comentario del <fecha> <hora>
+<texto del comentario>
+```
+
+- Un bloque por tarea, con su clave, título y estado.
+- NUEVO si se agrega; REEMPLAZA con la fecha y hora del comentario a editar
+  si corrige uno ya publicado.
+- Si inferiste algo, va al final como lista corta, nunca dentro del texto.
 
 Si el usuario pide ajustes puntuales, aplicalos sobre el texto ya entregado en
-lugar de reescribirlo completo.
+lugar de reescribirlo completo. Si rechaza el borrador y dicta su propia
+versión, partí de su frase y completala con lo mínimo.
