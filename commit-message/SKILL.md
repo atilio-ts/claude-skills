@@ -1,11 +1,12 @@
 ---
 name: personal:commit-message
-version: 1.1.0
+version: 1.2.0
 description: |
   Generate a conventional commit message for staged or unstaged changes.
   Reads git log and diff to produce a message that matches the project's
   style and the commit guidelines. Proposes how to group files when nothing
   is staged and waits for approval before staging or committing.
+trigger: /commit-message
 allowed-tools:
   - Bash
   - Read
@@ -95,6 +96,11 @@ Append `!` and add a `BREAKING CHANGE:` footer.
 - Each bullet is a self-contained line ≤ 80 characters
 - No wrapped continuations — split long ideas into separate bullets
 - Omit body if the first line is self-explanatory
+- **2 to 5 bullets, aim for 3 or 4. Never more than 5.**
+- One bullet per group of related changes, not one per file or per rule
+- Over 5: merge related bullets (all tests in one, README and version bump
+  in one), or split the commit if the changes have different purposes
+- Order: main change first, then tests, docs or README, version bump last
 
 ### Wording — plain and short
 
@@ -105,6 +111,35 @@ Write like a native English speaker in a hurry: verb + what changed, nothing mor
 - Avoid explanations of why, layer jargon, and slash-joined alternatives
 - Avoid idioms and figurative verbs (slim down, clean up, revamp, streamline)
 - Keep the scope out of the subject unless the diff spans unrelated modules
+- Summarize: a reader should get the change in one pass, not a changelog
+- Name the main classes, endpoints or files when that is the clearest way to
+  say what changed; skip the minor ones
+
+Too many bullets, one per small rule:
+
+```
+feature(report): add writing rules
+
+- Use ISO dates in file names
+- Use ISO dates in the report title
+- Write to the draft file when empty
+- Add scope rules
+- Add stage wording rules
+- Add grouping rules
+- Replace example with a generic section
+- Bump version to 1.5.0
+```
+
+Good, same change summarized:
+
+```
+feature(report): add writing rules
+
+- Use ISO dates in file names and report title
+- Add scope, stage wording and grouping rules
+- Replace example with a generic section
+- Bump version to 1.5.0
+```
 
 Too complex:
 
