@@ -1,6 +1,7 @@
 ---
 name: personal:estimate
-version: 1.2.0
+version: 1.2.1
+trigger: /estimate
 description: |
   Generates a technical analysis and effort estimation document for a new
   feature or system change. From the requirements and specifications provided
@@ -189,7 +190,7 @@ statistically more robust estimate than a simple average.
 Example:
 ```
 O = 420h, M = 530h, P = 700h
-Expected = (420 + 4×530 + 700) / 6 = 2240 / 6 ≈ 373h → report as range 530–545h
+Expected = (420 + 4×530 + 700) / 6 = 3240 / 6 = 540h → report as range 530–545h
 ```
 
 Report as a range (most likely scenario ± margin), not as a single number.

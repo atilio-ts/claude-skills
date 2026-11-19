@@ -1,7 +1,14 @@
 ---
 name: personal:readme-generator
+version: 1.0.0
 description: Generate or update a professional README for the current project by analyzing its code, structure, and dependencies. Supports multiple languages and adapts to the project type.
 trigger: /readme
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
 args:
   - name: lang
     description: Output language for the README (e.g. "en", "es", "pt"). Defaults to English.
